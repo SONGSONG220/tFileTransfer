@@ -1,6 +1,6 @@
 plugins {
     id("com.google.devtools.ksp")
-    alias(libs.plugins.jetbrainsKotlinJvm)
+    alias(libs.plugins.kotlin.jvm)
 }
 
 java {
@@ -13,7 +13,7 @@ kotlin {
 }
 
 dependencies {
-    api(libs.coroutines.core)
+    api(libs.kotlinx.coroutines.core)
 
     // Moshi
     api(libs.moshi)

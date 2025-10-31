@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
 }
 
@@ -86,9 +86,9 @@ dependencies {
     implementation(libs.androidx.swiperefreshlayout)
 
     // coroutine
-    implementation(libs.coroutines.core)
-    implementation(libs.coroutines.core.jvm)
-    implementation(libs.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.core.jvm)
+    implementation(libs.kotlinx.coroutines.android)
 
     // moshi
     implementation(libs.moshi)
@@ -102,12 +102,12 @@ dependencies {
     ksp(libs.androidx.lifecycle.compiler)
 
     // camerax
-    implementation(libs.camerax.core)
-    implementation(libs.camerax.camera2)
-    implementation(libs.camerax.lifecycle)
-    implementation(libs.camerax.video)
-    implementation(libs.camerax.view)
-    implementation(libs.camerax.extensions)
+    implementation(libs.androidx.camerax.core)
+    implementation(libs.androidx.camerax.camera2)
+    implementation(libs.androidx.camerax.lifecycle)
+    implementation(libs.androidx.camerax.video)
+    implementation(libs.androidx.camerax.view)
+    implementation(libs.androidx.camerax.extensions)
 
     // barcode scan
     implementation(libs.barcodescan)

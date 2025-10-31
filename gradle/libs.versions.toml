@@ -1,79 +1,90 @@
 [versions]
-agp = "8.11.1"
-kotlin = "2.2.0"
-googleKsp = "2.2.0-2.0.2"
-coreKtx = "1.17.0"
-junit = "4.13.2"
-androidJunit = "1.3.0"
-espressoCore = "3.7.0"
-appcompat = "1.7.1"
+
+# Plugins
+agp = "8.13.0"
+kotlin = "2.2.21"
+google-ksp = "2.2.21-2.0.4"
+
+# Android
+android-junit = "1.3.0"
+espresso-core = "3.7.0"
+androidx-coreKtx = "1.17.0"
+androidx-appcompat = "1.7.1"
+androidx-activity = "1.11.0"
+androidx-constraintlayout = "2.2.1"
+androidx-swiperefreshlayout = "1.1.0"
+androidx-recyclerview = "1.4.0"
+androidx-lifecycle = "2.9.4"
+androidx-annotaion = "1.9.1"
+androidx-camerax = "1.5.1"
+androidx-activity-compose = "1.11.0"
+androidx-navigation-compose = "2.9.5"
+androidx-lifecycle-compose = "2.9.4"
 material = "1.13.0"
-activity = "1.11.0"
-annotaion = "1.9.1"
-constraintlayout = "2.2.1"
-swiperefreshlayout = "1.1.0"
-recyclerview = "1.4.0"
-lifecycle = "2.9.3"
 flexbox = "3.0.0"
-rxjava3 = "3.1.11"
-rxkotlin3 = "3.0.1"
 rxandroid3 = "3.0.2"
-corouines = "1.10.2"
-moshi = "1.15.2"
-netty = "4.1.86.Final"
-okio = "3.16.0"
 rxbinding = "4.0.0"
-camerax = "1.5.0"
 barcodescan = "17.3.0"
-qrcodegen = "3.0.1"
 threetenabp = "1.4.9"
 glide = "5.0.5"
 tuiutils = "1.1.2"
 tapm = "1.0.3"
 tlog = "1.0.1"
+
+# JVM
+moshi = "1.15.2"
+netty = "4.1.86.Final"
+rxjava3 = "3.1.12"
+rxkotlin3 = "3.0.1"
+okio = "3.16.2"
+junit = "4.13.2"
+qrcodegen = "3.0.1"
 tlrucache = "1.0.1"
 
+# KMM
+kotlinx-corouines = "1.10.2"
+jetbrians-lifecycle-viewmodel = "2.9.5"
+jetbrains-lifecycle-compose = "2.9.5"
+jetbrains-navigation-compose = "2.9.1"
+androidx-compose-bom = "2025.10.01"
+androidx-compose-material3-adaptive = "1.2.0"
+androidx-compose-material3-adaptive-layout = "1.4.0"
+androidx-compose-material3-adaptive-navigation = "1.4.0"
+androidx-compose-material3-adaptive-navigation-suite = "1.4.0"
+coil-compose = "3.3.0"
+
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidJunit" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+# Android
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "android-junit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name="swiperefreshlayout",  version.ref="androidx-swiperefreshlayout"}
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "androidx-recyclerview" }
+androidx-lifecycle-rumtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-compiler = { group = "androidx.lifecycle", name = "lifecycle-compiler", version.ref = "androidx-lifecycle" }
+androidx-annotaion = { group = "androidx.annotation", name = "annotation", version.ref = "androidx-annotaion" }
+androidx-camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "androidx-camerax" }
+androidx-camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "androidx-camerax" }
+androidx-camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "androidx-camerax" }
+androidx-camerax-video = { group = "androidx.camera", name = "camera-video", version.ref = "androidx-camerax" }
+androidx-camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "androidx-camerax" }
+androidx-camerax-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "androidx-camerax" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity-compose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidx-navigation-compose" }
+androidx-lifecycle-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle-compose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name="swiperefreshlayout",  version.ref="swiperefreshlayout"}
-androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
-androidx-annotaion = { group = "androidx.annotation", name = "annotation", version.ref = "annotaion" }
-androidx-lifecycle-rumtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
-androidx-lifecycle-compiler = { group = "androidx.lifecycle", name = "lifecycle-compiler", version.ref = "lifecycle" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
-rxjava3 = { group = "io.reactivex.rxjava3", name = "rxjava", version.ref = "rxjava3" }
-rxkotlin3 = { group = "io.reactivex.rxjava3", name = "rxkotlin", version.ref = "rxkotlin3" }
 rxandroid3 = { group = "io.reactivex.rxjava3", name = "rxandroid", version.ref = "rxandroid3" }
-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "corouines" }
-coroutines-core-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "corouines" }
-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "corouines" }
-coroutines-rx3 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-rx3", version.ref = "corouines" }
-moshi = { group = "com.squareup.moshi", name = "moshi", version.ref = "moshi" }
-moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
-moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
-moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
-netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 rxbinding-core = { group = "com.jakewharton.rxbinding4", name = "rxbinding-core", version.ref = "rxbinding" }
 rxbinding-appcompat = { group = "com.jakewharton.rxbinding4", name = "rxbinding-appcompat", version.ref = "rxbinding" }
 rxbinding-swiperefreshlayout = { group = "com.jakewharton.rxbinding4", name = "rxbinding-swiperefreshlayout", version.ref = "rxbinding" }
-camerax-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
-camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
-camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
-camerax-video = { group = "androidx.camera", name = "camera-video", version.ref = "camerax" }
-camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
-camerax-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax" }
 barcodescan = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcodescan" }
-qrcodegen = { group = "com.github.kenglxn.QRGen", name = "android", version.ref = "qrcodegen" }
 threetenabp = { group = "com.jakewharton.threetenabp", name = "threetenabp", version.ref = "threetenabp" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-corouines" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide"}
 tuiutils = { group = "io.github.tans5", name = "tuiutils", version.ref = "tuiutils"}
 tapm-core = { group = "io.github.tans5", name= "tapm-core", version.ref = "tapm" }
@@ -81,14 +92,49 @@ tapm-autoinit = { group = "io.github.tans5", name= "tapm-autoinit", version.ref 
 tapm-log = { group = "io.github.tans5", name= "tapm-log", version.ref = "tapm" }
 tapm-breakpad = { group = "io.github.tans5", name= "tapm-breakpad", version.ref = "tapm" }
 tlog = { group = "io.github.tans5", name = "tlog", version.ref = "tlog" }
+
+# JVM
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+rxjava3 = { group = "io.reactivex.rxjava3", name = "rxjava", version.ref = "rxjava3" }
+rxkotlin3 = { group = "io.reactivex.rxjava3", name = "rxkotlin", version.ref = "rxkotlin3" }
+moshi = { group = "com.squareup.moshi", name = "moshi", version.ref = "moshi" }
+moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
+moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
+moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
+netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
+qrcodegen = { group = "com.github.kenglxn.QRGen", name = "android", version.ref = "qrcodegen" }
+kotlinx-coroutines-rx3 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-rx3", version.ref = "kotlinx-corouines" }
+kotlinx-coroutines-core-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinx-corouines" }
 tlrucache = { group = "io.github.tans5", name = "tlrucache", version.ref = "tlrucache" }
 
+# KMM
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-corouines" }
+jetbrains-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "jetbrians-lifecycle-viewmodel" }
+jetbrains-lifecycle-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "jetbrains-lifecycle-compose" }
+jetbrains-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "jetbrains-navigation-compose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose-bom" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
+androidx-compose-material = { group = "androidx.compose.material", name = "material" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-material3 =  { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "androidx-compose-material3-adaptive" }
+androidx-compose-material3-adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout", version.ref = "androidx-compose-material3-adaptive-layout" }
+androidx-compose-material3-adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "androidx-compose-material3-adaptive-navigation" }
+androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "androidx-compose-material3-adaptive-navigation-suite" }
+coil3-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-compose" }
+coil3-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil-compose" }
+coil3-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil-compose" }
+
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-googleKsp = { id = "com.google.devtools.ksp", version.ref = "googleKsp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+google-ksp = { id = "com.google.devtools.ksp", version.ref = "google-ksp" }
 
 
 

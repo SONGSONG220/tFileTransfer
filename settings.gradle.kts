@@ -16,12 +16,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://www.jitpack.io")
-        }
     }
 }
 
-rootProject.name = "tFileTransporter"
-include(":app")
+rootProject.name = "tFileTransfer"
 include(":net")
+include(":common")
+include(":apps:desktopApp")
+include(":apps:androidApp")

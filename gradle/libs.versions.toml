@@ -26,7 +26,6 @@ flexbox = "3.0.0"
 rxandroid3 = "3.0.2"
 rxbinding = "4.0.0"
 barcodescan = "17.3.0"
-threetenabp = "1.4.9"
 glide = "5.0.5"
 tuiutils = "1.1.2"
 tapm = "1.0.3"
@@ -42,9 +41,12 @@ junit = "4.13.2"
 qrcodegen = "3.0.1"
 tlrucache = "1.0.1"
 
-# KMM
+# KMP
 kotlinx-corouines = "1.10.2"
 kotlinx-serialization = "1.9.0"
+kotlinx-datetime = "0.7.1"
+kotlinx-io-core = "0.8.0"
+kotlinx-actomicfu = "0.29.0"
 jetbrians-lifecycle-viewmodel = "2.9.5"
 jetbrains-lifecycle-compose = "2.9.5"
 jetbrains-navigation-compose = "2.9.1"
@@ -53,6 +55,7 @@ androidx-compose-material3-adaptive = "1.2.0"
 androidx-compose-material3-adaptive-layout = "1.4.0"
 androidx-compose-material3-adaptive-navigation = "1.4.0"
 androidx-compose-material3-adaptive-navigation-suite = "1.4.0"
+ktor = "3.3.1"
 coil-compose = "3.3.0"
 
 [libraries]
@@ -85,8 +88,6 @@ rxbinding-core = { group = "com.jakewharton.rxbinding4", name = "rxbinding-core"
 rxbinding-appcompat = { group = "com.jakewharton.rxbinding4", name = "rxbinding-appcompat", version.ref = "rxbinding" }
 rxbinding-swiperefreshlayout = { group = "com.jakewharton.rxbinding4", name = "rxbinding-swiperefreshlayout", version.ref = "rxbinding" }
 barcodescan = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "barcodescan" }
-threetenabp = { group = "com.jakewharton.threetenabp", name = "threetenabp", version.ref = "threetenabp" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-corouines" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide"}
 tuiutils = { group = "io.github.tans5", name = "tuiutils", version.ref = "tuiutils"}
 tapm-core = { group = "io.github.tans5", name= "tapm-core", version.ref = "tapm" }
@@ -106,14 +107,20 @@ moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", versio
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 qrcodegen = { group = "com.github.kenglxn.QRGen", name = "android", version.ref = "qrcodegen" }
-kotlinx-coroutines-rx3 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-rx3", version.ref = "kotlinx-corouines" }
-kotlinx-coroutines-core-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinx-corouines" }
 tlrucache = { group = "io.github.tans5", name = "tlrucache", version.ref = "tlrucache" }
 
-# KMM
+# KMP
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-corouines" }
-kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+# For Android/JVM
+kotlinx-coroutines-core-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinx-corouines" }
+# For Android
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-corouines" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-core" }
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-actomicfu" }
 jetbrains-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "jetbrians-lifecycle-viewmodel" }
 jetbrains-lifecycle-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "jetbrains-lifecycle-compose" }
 jetbrains-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "jetbrains-navigation-compose" }
@@ -129,6 +136,14 @@ androidx-compose-material3-adaptive = { group = "androidx.compose.material3.adap
 androidx-compose-material3-adaptive-layout = { group = "androidx.compose.material3.adaptive", name = "adaptive-layout", version.ref = "androidx-compose-material3-adaptive-layout" }
 androidx-compose-material3-adaptive-navigation = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "androidx-compose-material3-adaptive-navigation" }
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite", version.ref = "androidx-compose-material3-adaptive-navigation-suite" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+# For Android/JVM
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+# For iOS
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktor" }
+ktor-client-content-negotiation= { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json= { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 coil3-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-compose" }
 coil3-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil-compose" }
 coil3-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil-compose" }

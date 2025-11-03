@@ -9,10 +9,12 @@ plugins {
 
 kotlin {
 
+
     androidLibrary {
         namespace = "com.tans.tfiletransporter"
         compileSdk = properties["ANDROID_COMPILE_SDK"].toString().toInt()
         minSdk = properties["ANDROID_MIN_SDK"].toString().toInt()
+        androidResources.enable = true
 //        withHostTestBuilder {
 //        }
 //
@@ -57,7 +59,9 @@ kotlin {
             dependencies {
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.serialization)
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlinx.atomicfu)
                 implementation(libs.jetbrains.lifecycle.viewmodel)
                 implementation(libs.jetbrains.lifecycle.compose)
                 implementation(libs.jetbrains.navigation.compose)
@@ -69,7 +73,6 @@ kotlin {
                 implementation(compose.components.uiToolingPreview)
                 implementation(compose.material3)
                 implementation(compose.components.resources)
-
             }
         }
 

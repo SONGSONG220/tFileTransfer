@@ -57,37 +57,37 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlin.stdlib)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.atomicfu)
-                implementation(libs.jetbrains.lifecycle.viewmodel)
-                implementation(libs.jetbrains.lifecycle.compose)
-                implementation(libs.jetbrains.navigation.compose)
+                api(libs.kotlin.stdlib)
+                api(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.atomicfu)
+                api(libs.jetbrains.lifecycle.viewmodel)
+                api(libs.jetbrains.lifecycle.compose)
+                api(libs.jetbrains.navigation.compose)
 
-                implementation(compose.runtime)
-                implementation(compose.foundation)
-                implementation(compose.ui)
-                implementation(compose.uiTooling)
-                implementation(compose.components.uiToolingPreview)
-                implementation(compose.material3)
-                implementation(compose.components.resources)
+                api(compose.runtime)
+                api(compose.foundation)
+                api(compose.ui)
+                api(compose.uiTooling)
+                api(compose.components.uiToolingPreview)
+                api(compose.material3)
+                api(compose.components.resources)
             }
         }
 
         androidMain {
             dependencies {
                 api(libs.androidx.activity.compose)
-                implementation(libs.kotlinx.coroutines.android)
-                implementation(project(":net"))
+                api(libs.kotlinx.coroutines.android)
+                api(project(":net"))
             }
         }
 
         jvmMain {
             dependencies {
-                implementation(libs.kotlinx.coroutines.core.jvm)
-                implementation(project(":net"))
+                api(libs.kotlinx.coroutines.core.jvm)
+                api(project(":net"))
             }
         }
 //

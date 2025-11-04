@@ -27,34 +27,21 @@
     <!--endregion-->
 
     <!--region ConnectionActivity-->
-    <string name="local_network_connection_title">Connect Remote Device via LocalNetwork</string>
-    <string name="local_network_connection_description">If two devices in the same local network, you can use this way create connection. \n Use QR code scan or UDP broadcast.</string>
+    <string name="local_network_connection_title">Local Network Connection</string>
+    <string name="local_network_connection_description">When two devices are on the same local network, you can establish a connection between them using either QR code scanning or UDP broadcast.</string>
     <string name="broadcast_connection_local_device">Local Device: %s</string>
     <string name="broadcast_connection_local_ip_address">Local IP Address: %s</string>
     <string name="broadcast_connection_use_system_broadcast">Use System Broadcast: </string>
     <string name="local_network_scan_qr_code">Scan QR Code</string>
-    <string name="local_network_show_qr_code">Show QR Code</string>
-    <string name="broadcast_connection_as_receiver">Search Servers</string>
-    <string name="broadcast_connection_as_sender">As Server</string>
-
-    <string name="broadcast_waiting_connect">Waiting connect&#8230;</string>
-    <string name="broadcast_waiting_cancel">Cancel</string>
-
-    <string name="broadcast_request_connect">Request Connect</string>
-    <string name="broadcast_request_accept">Accept</string>
-    <string name="broadcast_request_deny">Deny</string>
+    <string name="local_network_show_qr_code">Display QR Code</string>
+    <string name="broadcast_connection_as_receiver">Find Servers</string>
+    <string name="broadcast_connection_as_sender">Host as Server</string>
 
     <string name="broadcast_searching_server">Searching&#8230;</string>
     <string name="broadcast_searching_cancel">Cancel</string>
 
-    <string name="tcp_scan_title">Scan Devices</string>
-    <string name="tcp_scan_tips">You could scan other devices in the same network. When Server Status is working, your device could be scanned by others.</string>
-    <string name="tcp_scan_server_status_active">Server Status: Working</string>
-    <string name="tcp_scan_server_status_error">Server Status: Error</string>
-    <string name="tcp_scan_scan">Scan</string>
-
-    <string name="wifi_p2p_connection_title">Connect via WiFi P2P</string>
-    <string name="wifi_p2p_connection_tips">Just open the WiFi and GPS, close to the target device and system will find it.</string>
+    <string name="wifi_p2p_connection_title">Wi-Fi Direct Connection</string>
+    <string name="wifi_p2p_connection_tips">Enable Wi-Fi and location services to automatically discover nearby devices.</string>
     <string name="wifi_p2p_connection_remote_device">Connected Remote Device\n Name: %s\n Ip Address: %s \n Status: %s</string>
     <string name="wifi_p2p_connection_local_address">Local Address: %s</string>
     <string name="wifi_p2p_connection_transfer_files">Transfer Files</string>

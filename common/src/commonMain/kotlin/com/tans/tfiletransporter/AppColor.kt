@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 object AppColor {
     val White = Color(0xffffffff)
     val Black = Color(0xff000000)
+    val Transient = Color(0x00000000)
 
     val Teal50 = Color(0xffd4f6f2)
     val Teal100 = Color(0xff92e9dc)

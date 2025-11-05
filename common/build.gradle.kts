@@ -71,6 +71,7 @@ kotlin {
                 api(compose.ui)
                 api(compose.material3)
                 api(compose.components.resources)
+                api(project(":net"))
 
                 // TODO: Preview not work, only support JetBrains Fleet, Not support Android Studio or IDEA.
 //                api(compose.uiTooling)
@@ -82,14 +83,12 @@ kotlin {
             dependencies {
                 api(libs.androidx.activity.compose)
                 api(libs.kotlinx.coroutines.android)
-                api(project(":net"))
             }
         }
 
         jvmMain {
             dependencies {
                 api(libs.kotlinx.coroutines.core.jvm)
-                api(project(":net"))
             }
         }
 //

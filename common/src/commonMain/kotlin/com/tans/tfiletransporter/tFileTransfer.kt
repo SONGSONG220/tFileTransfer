@@ -30,8 +30,6 @@ val LocalAppTypography = staticCompositionLocalOf<Typography> {
     error("No local app typography")
 }
 
-
-
 private val appLightColorTheme = lightColorScheme(
     // 主要颜色
     primary = AppColor.Teal200,

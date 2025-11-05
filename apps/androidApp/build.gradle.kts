@@ -73,5 +73,11 @@ android {
 }
 
 dependencies {
+
+    // For preview
+    debugImplementation(platform(libs.androidx.compose.bom))
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.tooling.preview)
+
     implementation(project(":common"))
 }

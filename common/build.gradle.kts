@@ -66,13 +66,15 @@ kotlin {
                 api(libs.jetbrains.lifecycle.compose)
                 api(libs.jetbrains.navigation.compose)
 
-                api(compose.runtime)
                 api(compose.foundation)
+                api(compose.runtime)
                 api(compose.ui)
-                api(compose.uiTooling)
-                api(compose.components.uiToolingPreview)
                 api(compose.material3)
                 api(compose.components.resources)
+
+                // TODO: Preview not work, only support JetBrains Fleet, Not support Android Studio or IDEA.
+//                api(compose.uiTooling)
+//                api(compose.components.uiToolingPreview)
             }
         }
 

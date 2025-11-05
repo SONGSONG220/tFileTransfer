@@ -36,7 +36,11 @@ fun HomeScreen(backEntry: NavBackStackEntry) {
             )
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize().padding(it)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
 
         }
     }

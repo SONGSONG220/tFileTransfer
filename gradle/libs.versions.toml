@@ -36,7 +36,6 @@ moshi = "1.15.2"
 netty = "4.1.86.Final"
 rxjava3 = "3.1.12"
 rxkotlin3 = "3.0.1"
-okio = "3.16.2"
 junit = "4.13.2"
 qrcodegen = "3.0.1"
 tlrucache = "1.0.1"
@@ -57,6 +56,7 @@ androidx-compose-material3-adaptive-navigation = "1.4.0"
 androidx-compose-material3-adaptive-navigation-suite = "1.4.0"
 ktor = "3.3.1"
 coil-compose = "3.3.0"
+okio = "3.16.2"
 
 [libraries]
 # Android
@@ -105,7 +105,6 @@ moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.re
 moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
 moshi-adapters = { group = "com.squareup.moshi", name = "moshi-adapters", version.ref = "moshi" }
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 qrcodegen = { group = "com.github.kenglxn.QRGen", name = "android", version.ref = "qrcodegen" }
 tlrucache = { group = "io.github.tans5", name = "tlrucache", version.ref = "tlrucache" }
 
@@ -148,11 +147,15 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 # For iOS
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-resources = { module = "io.ktor:ktor-client-resources", version.ref = "ktor" }
-ktor-client-content-negotiation= { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-serialization-kotlinx-json= { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+# Socket support
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-network-tls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
 coil3-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-compose" }
 coil3-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil-compose" }
 coil3-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil-compose" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

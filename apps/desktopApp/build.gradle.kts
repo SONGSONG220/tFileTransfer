@@ -17,7 +17,7 @@ kotlin {
 
 dependencies {
     implementation(compose.desktop.currentOs)
-    implementation(project(":common"))
+    implementation(project(":appShare"))
 }
 
 compose.desktop {

@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "tFileTransfer"
 include(":net")
-include(":common")
+include(":appShare")
 include(":apps:desktopApp")
 include(":apps:androidApp")
+include(":net2")

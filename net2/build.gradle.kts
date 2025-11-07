@@ -49,18 +49,19 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.ktor.network)
                 api(libs.okio)
+                api(libs.kotlinx.atomicfu)
             }
         }
 
         androidMain {
             dependencies {
-
+                api(libs.tlrucache)
             }
         }
 
         jvmMain {
             dependencies {
-
+                api(libs.tlrucache)
             }
         }
 

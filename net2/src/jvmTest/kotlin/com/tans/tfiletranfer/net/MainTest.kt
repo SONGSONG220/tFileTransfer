@@ -1,7 +1,7 @@
 package com.tans.tfiletranfer.net
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.tans.tfiletransfer.net.socket.findLocalAddressV4
+import com.tans.tfiletransfer.net.socket.getBroadcastAddressV4
 import kotlinx.coroutines.runBlocking
 
 object MainTest {
@@ -9,17 +9,10 @@ object MainTest {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-
-            val serverJob = launch { args
-                UdpServerTest.run()
+            val localAddress = findLocalAddressV4()
+            for (a in localAddress) {
+                println("LocalAddress: $a, Broadcast: ${a.getBroadcastAddressV4()}")
             }
-
-            launch { args
-                delay(200)
-                UdpClientTest.run()
-            }
-
-            serverJob.join()
         }
     }
 }

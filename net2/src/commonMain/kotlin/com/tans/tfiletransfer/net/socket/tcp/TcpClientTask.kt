@@ -28,7 +28,7 @@ import kotlinx.coroutines.sync.Mutex
 
 class TcpClientTask(
     private val serverAddress: AddressWithPort,
-    private val pool: BufferPool = BufferPool()
+    private val bufferPool: BufferPool = BufferPool()
 ) : ConnectionTask {
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -46,7 +46,6 @@ class TcpClientTask(
         try {
             val socket = aSocket(selector)
                 .configure {
-                    reusePort = true
                     reuseAddress = true
                 }
                 .tcp()
@@ -80,7 +79,7 @@ class TcpClientTask(
         release()
     }
 
-    fun pktReadChannel(): Channel<PackageData> = pktWriteChannel
+    fun pktReadChannel(): Channel<PackageData> = pktReadChannel
 
     suspend fun writePktData(pkt: PackageData): Boolean {
         return if (currentState() == ConnectionTaskState.Connected) {
@@ -101,7 +100,7 @@ class TcpClientTask(
                     val type = readChannel.readInt()
                     val msgId = readChannel.readLong()
                     val dataLen = pktLen - 4 - 8
-                    val data = pool.get(dataLen)
+                    val data = bufferPool.get(dataLen)
                     readChannel.readAvailable(buffer = data.array, offset = 0, length = dataLen)
                     data.contentSize = dataLen
                     pktReadChannel.send(
@@ -128,9 +127,9 @@ class TcpClientTask(
                     writeChannel.writeInt(pktLen)
                     writeChannel.writeInt(pkt.type)
                     writeChannel.writeLong(pkt.messageId)
-                    writeChannel.writeFully(pkt.data.array, pkt.data.contentSize)
+                    writeChannel.writeFully(pkt.data.array, 0, pkt.data.contentSize)
                     writeChannel.flush()
-                    pool.put(pkt.data)
+                    bufferPool.put(pkt.data)
                 }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Write channel error: ${e.message}", e)

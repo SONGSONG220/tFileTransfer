@@ -56,6 +56,7 @@ kotlin {
         androidMain {
             dependencies {
                 api(libs.tlrucache)
+                api(libs.tlog)
             }
         }
 

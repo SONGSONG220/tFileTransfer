@@ -1,3 +1,5 @@
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package com.tans.tfiletransfer.net
 
-actual fun platform(): String = "Jvm"
+actual typealias PlatformContext = Unit

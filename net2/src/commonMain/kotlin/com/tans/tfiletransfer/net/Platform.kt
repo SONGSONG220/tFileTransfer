@@ -1,3 +1,4 @@
 package com.tans.tfiletransfer.net
 
-expect fun platform(): String
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+expect class PlatformContext

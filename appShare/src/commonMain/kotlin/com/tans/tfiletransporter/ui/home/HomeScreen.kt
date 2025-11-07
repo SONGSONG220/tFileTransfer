@@ -97,5 +97,5 @@ inline val ColumnScope.homeScreenCardModifier
         .fillMaxWidth()
         .shadow(1.dp, clip = true, shape = RoundedCornerShape(8.dp))
         .background(LocalAppColorScheme.current.surface, RoundedCornerShape(8.dp))
-        .padding(10.dp)
+        .padding(12.dp)
         .align(Alignment.CenterHorizontally)

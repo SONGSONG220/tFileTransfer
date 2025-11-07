@@ -62,7 +62,7 @@ fun ColumnScope.LocalNetworkConnection(backEntry: NavBackStackEntry) {
                             .height(50.dp)
                             .fillMaxWidth()
                             .align(Alignment.CenterHorizontally),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(width = 1.dp, color = LocalAppColorScheme.current.primary),
                         colors = ButtonDefaults.buttonColors().copy(
                             containerColor = LocalAppColorScheme.current.surface,

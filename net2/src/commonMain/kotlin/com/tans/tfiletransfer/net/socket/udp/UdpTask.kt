@@ -28,7 +28,7 @@ import kotlinx.io.InternalIoApi
 
 class UdpTask(
     private val connectionType: UdpConnectionType,
-    private val bufferPool: BufferPool = BufferPool()
+    override val bufferPool: BufferPool = BufferPool()
 ) : ConnectionTask {
 
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)

@@ -24,9 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 
-abstract class BaseTcpClientTask(
-    protected val bufferPool: BufferPool = BufferPool()
-) : ConnectionTask {
+abstract class BaseTcpClientTask() : ConnectionTask {
 
     protected abstract val tag: String
 

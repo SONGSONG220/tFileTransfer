@@ -1,5 +1,6 @@
 package com.tans.tfiletransfer.net.socket
 
+import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +15,7 @@ interface ConnectionTask {
     val stateFlow: StateFlow<ConnectionTaskState>
     val coroutineScope: CoroutineScope
     val stateUpdateMutex: Mutex
+    val bufferPool: BufferPool
 
     fun startTask() {
         coroutineScope.launch {

@@ -20,7 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 
 class TcpServerTask(
     private val bindAddress: AddressWithPort,
-    private val bufferPool: BufferPool = BufferPool()
+    override val bufferPool: BufferPool = BufferPool()
 ) : ConnectionTask {
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -97,7 +97,9 @@ class TcpServerTask(
         }
     }
 
-    inner class ClientTask(private val clientSocket: Socket) : BaseTcpClientTask(bufferPool) {
+    inner class ClientTask(private val clientSocket: Socket) : BaseTcpClientTask() {
+
+        override val bufferPool: BufferPool = this@TcpServerTask.bufferPool
 
         override val tag: String = CLIENT_TAG
 

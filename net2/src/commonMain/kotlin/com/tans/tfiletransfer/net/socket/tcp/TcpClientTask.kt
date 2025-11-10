@@ -45,10 +45,10 @@ class TcpClientTask(
     override suspend fun onStartTask() {
         try {
             val socket = aSocket(selector)
+                .tcp()
                 .configure {
                     reuseAddress = true
                 }
-                .tcp()
                 .connect(serverAddress.address, serverAddress.port)
             updateStateExpect(
                 expect = ConnectionTaskState.Connecting,
@@ -89,7 +89,6 @@ class TcpClientTask(
             false
         }
     }
-
 
     private fun readSocketData(socket: Socket) {
         coroutineScope.launch {

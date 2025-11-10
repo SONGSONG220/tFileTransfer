@@ -1,41 +1,43 @@
 package com.tans.tfiletranfer.net
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.Datagram
-import io.ktor.network.sockets.aSocket
-import io.ktor.utils.io.core.readAvailable
-import io.ktor.utils.io.core.writeFully
-import kotlinx.coroutines.Dispatchers
-import kotlinx.io.Buffer
+import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
+import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.udp.UdpTask
+import kotlinx.coroutines.delay
 
 object UdpServerTest {
     suspend fun run() {
-        try {
-            val selector = SelectorManager(Dispatchers.IO)
-            selector.use {
-                val socket = aSocket(selector)
-                    .udp()
-                    .configure { selector
-                        broadcast = true
-                    }
-                    .bind("127.0.0.1", BIND_PORT)
-                socket.use {
-                    val receiveData = socket.incoming.receive()
-                    val receiveDataSize = receiveData.packet.readInt()
-                    val receiveArray = ByteArray(receiveDataSize)
-                    receiveData.packet.readAvailable(receiveArray)
-                    println("Receive client msg: ${receiveArray.toString(Charsets.UTF_8)}")
+        val bufferPool = BufferPool()
+        val udpClient = UdpTask(
+            connectionType = UdpTask.Companion.UdpConnectionType.Bind(
+                AddressWithPort("127.0.0.1", BIND_PORT)
+            ),
+            bufferPool = bufferPool
+        )
+        delay(200)
+        udpClient.startTask()
+        val readChannel = udpClient.pktReadChannel()
+        for (pkt in readChannel) {
+            println("Receive client(${pkt.address}) msg: ${String(pkt.pkt.data.array, 0, pkt.pkt.data.contentSize,
+                Charsets.UTF_8)}")
 
-                    val sendArray = "Message from server -> Hello.".toByteArray(Charsets.UTF_8)
-                    val sendBuffer = Buffer()
-                    sendBuffer.writeInt(sendArray.size)
-                    sendBuffer.writeFully(sendArray)
-                    val sendPkt = Datagram(sendBuffer, receiveData.address)
-                    socket.outgoing.send(sendPkt)
-                }
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
+            val buffer = bufferPool.get(1024)
+            val bytes = "Hello Client.".toByteArray(Charsets.UTF_8)
+            val okIoBuffer = okio.Buffer()
+            okIoBuffer.write(bytes)
+            buffer.contentSize = okIoBuffer.read(buffer.array)
+            udpClient.writePktData(
+                pktDataWithAddress = PackageDataWithAddress(
+                    pkt = PackageData(
+                        type = 1,
+                        messageId = 1000L,
+                        data = buffer
+                    ),
+                    address = pkt.address
+                )
+            )
         }
     }
 

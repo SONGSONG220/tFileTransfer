@@ -1,49 +1,53 @@
 package com.tans.tfiletranfer.net
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.readAvailable
-import io.ktor.utils.io.readInt
-import io.ktor.utils.io.writeByteArray
-import io.ktor.utils.io.writeInt
-import kotlinx.coroutines.Dispatchers
+import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.tcp.TcpClientTask
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 object TcpClientTest {
 
     suspend fun run() {
-        try {
-            val selectorManager = SelectorManager(Dispatchers.IO)
-            selectorManager.use {
-                val clientSocket = aSocket(selectorManager)
-                    .tcp()
-                    .configure { selectorManager
-                        reuseAddress = true
-                        reusePort = true
-                    }
-                    .connect("127.0.0.1", TcpServerTest.BIND_PORT)
-                clientSocket.use {
-                    println("Connect to server success.")
-                    val readChannel = clientSocket.openReadChannel()
-                    val readLen = readChannel.readInt()
-                    val readArray = ByteArray(readLen)
-                    readChannel.readAvailable(readArray)
-                    readChannel.cancel()
-                    println("Receive server msg: ${readArray.toString(Charsets.UTF_8)}")
-
-                    val writeChannel = clientSocket.openWriteChannel(autoFlush = true)
-                    val writeArray = "Message from client -> Hello, ^_^.".toByteArray(Charsets.UTF_8)
-                    writeChannel.writeInt(writeArray.size)
-                    writeChannel.writeByteArray(writeArray)
-                    writeChannel.flushAndClose()
-                    println("Send message to server success.")
+        val bufferPool = BufferPool()
+        val clientTask = TcpClientTask(serverAddress = AddressWithPort("127.0.0.1", 1996), bufferPool = bufferPool)
+        delay(200)
+        clientTask.startTask()
+        coroutineScope {
+            launch {
+                clientTask.state().collect {
+                    println("Client state: $it")
                 }
             }
-        } catch (e: Throwable) {
-            println(e.message)
-            e.printStackTrace()
+            launch {
+                for (pkt in clientTask.pktReadChannel()) {
+                    println("Client receive: ${String(pkt.data.array, 0, pkt.data.contentSize, Charsets.UTF_8)}")
+                    bufferPool.put(pkt.data)
+                }
+            }
+            launch {
+                clientTask.state().filter { it == ConnectionTaskState.Connected }.first()
+                val greetingToServer = "Hello, server"
+                val buffer = bufferPool.get(1024)
+                val okioBuffer = okio.Buffer()
+                okioBuffer.writeUtf8(greetingToServer)
+                val contentSize = okioBuffer.read(buffer.array)
+                buffer.contentSize = contentSize
+                clientTask.writePktData(
+                    PackageData(
+                        type = 1,
+                        messageId = 1000L,
+                        data = buffer
+                    )
+                )
+                // delay(1000)
+                // clientTask.stopTask()
+            }
         }
     }
 }

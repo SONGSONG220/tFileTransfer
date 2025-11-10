@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.io.Buffer
+import kotlinx.io.InternalIoApi
 
 class UdpTask(
     private val connectionType: UdpConnectionType,
@@ -107,6 +108,7 @@ class UdpTask(
         }
     }
 
+    @OptIn(InternalIoApi::class)
     private fun readSocketData(socket: DatagramReadWriteChannel) {
         coroutineScope.launch {
             try {
@@ -118,7 +120,8 @@ class UdpTask(
                         port = remoteAddressInet.port
                     )
                     val pkt = datagram.packet
-                    val pktLen = pkt.readInt()
+                    // val pktLen = pkt.readInt()
+                    val pktLen = pkt.buffer.size.toInt()
                     val type = pkt.readInt()
                     val msgId = pkt.readLong()
                     val dataLen = pktLen - 4 - 8
@@ -149,7 +152,7 @@ class UdpTask(
                 val writeChannel = socket.outgoing
                 for (toWrite in pktWriteChannel) {
                     val ktBuffer = Buffer()
-                    ktBuffer.writeInt(toWrite.pkt.data.contentSize + 4 + 8)
+                    // ktBuffer.writeInt(toWrite.pkt.data.contentSize + 4 + 8)
                     ktBuffer.writeInt(toWrite.pkt.type)
                     ktBuffer.writeLong(toWrite.pkt.messageId)
                     ktBuffer.writeFully(toWrite.pkt.data.array, 0, toWrite.pkt.data.contentSize)

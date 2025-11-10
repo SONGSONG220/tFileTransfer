@@ -9,11 +9,11 @@ object MainTest {
     fun main(args: Array<String>) {
         runBlocking {
             launch {
-                UdpServerTest.run()
+                TcpServerTest.run()
             }
 
             launch {
-                UdpClientTest.run()
+                TcpClientTest.run()
             }
         }
     }

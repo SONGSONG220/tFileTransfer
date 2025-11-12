@@ -4,7 +4,7 @@ import kotlin.reflect.KClass
 
 interface IConverterFactory {
 
-    fun findBodyConverter(type: Int, dataClass: KClass<*>) : IBodyConverter?
+    fun findTypeConverter(type: Int, typeClass: KClass<*>) : ITypeConverter?
 
-    fun findPackageDataConverter(type: Int, dataClass: KClass<*>): IPackageDataConverter?
+    fun findPackageConverter(type: Int, dataTypeClass: KClass<*>): IPackageConverter?
 }

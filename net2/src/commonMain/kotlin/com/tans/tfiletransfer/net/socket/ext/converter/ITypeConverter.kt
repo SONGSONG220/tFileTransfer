@@ -4,14 +4,14 @@ import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import kotlin.reflect.KClass
 
-interface IBodyConverter {
+interface ITypeConverter {
 
-    fun couldHandle(type: Int, dataClass: KClass<*>): Boolean
+    fun couldHandle(type: Int, typeClass: KClass<*>): Boolean
 
     fun <T : Any> convert(
         type: Int,
-        dataClass: KClass<T>,
-        packageData: PackageData,
+        typeClass: KClass<T>,
+        pkt: PackageData,
         bufferPool: BufferPool
-    ): T?
+    ): T
 }

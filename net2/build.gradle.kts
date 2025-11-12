@@ -50,6 +50,7 @@ kotlin {
                 api(libs.ktor.network)
                 api(libs.okio)
                 api(libs.kotlinx.atomicfu)
+                api(libs.kotlinx.serialization.json)
             }
         }
 

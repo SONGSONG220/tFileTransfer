@@ -4,7 +4,6 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.ConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.openReadChannel
@@ -44,6 +43,8 @@ abstract class BaseTcpClientTask() : ConnectionTask {
     override suspend fun onError(throwable: Throwable?) {
         release()
     }
+
+    fun socket(): Socket? = socket
 
     fun pktReadChannel(): Channel<PackageData> = pktReadChannel
 

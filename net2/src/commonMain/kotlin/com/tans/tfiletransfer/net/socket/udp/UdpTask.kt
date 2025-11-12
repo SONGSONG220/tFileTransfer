@@ -27,7 +27,7 @@ import kotlinx.io.Buffer
 import kotlinx.io.InternalIoApi
 
 class UdpTask(
-    private val connectionType: UdpConnectionType,
+    val connectionType: UdpConnectionType,
     override val bufferPool: BufferPool = BufferPool()
 ) : ConnectionTask {
 
@@ -85,6 +85,8 @@ class UdpTask(
     override suspend fun onError(throwable: Throwable?) {
         release()
     }
+
+    fun socket(): ASocket? = socket
 
     fun pktReadChannel(): Channel<PackageDataWithAddress> = pktReadChannel
 

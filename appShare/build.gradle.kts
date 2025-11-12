@@ -71,7 +71,7 @@ kotlin {
                 api(compose.ui)
                 api(compose.material3)
                 api(compose.components.resources)
-                // api(project(":net"))
+                api(project(":net2"))
 
                 // TODO: Preview not work, only support JetBrains Fleet, Not support Android Studio or IDEA.
 //                api(compose.uiTooling)

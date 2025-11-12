@@ -97,6 +97,8 @@ private val appDarkColorScheme = darkColorScheme(
 @Suppress("ComposableNaming")
 @Composable
 fun tFileTransfer() {
+    initNetLog()
+
     val isInDarkTheme = isSystemInDarkTheme()
     val colorScheme = if (!isInDarkTheme) appLightColorTheme else appDarkColorScheme
     val typography = MaterialTheme.typography

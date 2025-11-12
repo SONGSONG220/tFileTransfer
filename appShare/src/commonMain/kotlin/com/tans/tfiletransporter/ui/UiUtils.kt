@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package com.tans.tfiletransporter.ui
 
 import androidx.compose.foundation.layout.Spacer

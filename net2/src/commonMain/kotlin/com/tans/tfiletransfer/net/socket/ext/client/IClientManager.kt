@@ -1,10 +1,11 @@
 package com.tans.tfiletransfer.net.socket.ext.client
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
 import kotlin.reflect.KClass
 
 
-interface IClientManager {
+interface IClientManager : IConnectionManager {
 
     /**
      * For Tcp

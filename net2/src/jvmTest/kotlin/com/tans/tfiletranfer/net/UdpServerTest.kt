@@ -1,44 +1,37 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.server
+import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.socket.udp.UdpTask
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 
 object UdpServerTest {
-    suspend fun run() {
-        val bufferPool = BufferPool()
-        val udpClient = UdpTask(
-            connectionType = UdpTask.Companion.UdpConnectionType.Bind(
-                AddressWithPort("127.0.0.1", BIND_PORT)
-            ),
-            bufferPool = bufferPool
-        )
-        delay(200)
-        udpClient.startTask()
-        val readChannel = udpClient.pktReadChannel()
-        for (pkt in readChannel) {
-            println("Receive client(${pkt.address}) msg: ${String(pkt.pkt.data.array, 0, pkt.pkt.data.contentSize,
-                Charsets.UTF_8)}")
 
-            val buffer = bufferPool.get(1024)
-            val bytes = "Hello Client.".toByteArray(Charsets.UTF_8)
-            val okIoBuffer = okio.Buffer()
-            okIoBuffer.write(bytes)
-            buffer.contentSize = okIoBuffer.read(buffer.array)
-            udpClient.writePktData(
-                pktDataWithAddress = PackageDataWithAddress(
-                    pkt = PackageData(
-                        type = 1,
-                        messageId = 1000L,
-                        data = buffer
-                    ),
-                    address = pkt.address
-                )
-            )
-        }
+    suspend fun run() {
+        val localAddress = findLocalAddressV4()[0]
+        val udpClient = UdpTask(
+            connectionType = UdpTask.Companion.UdpConnectionType.Bind(AddressWithPort(localAddress, BIND_PORT)),
+        )
+        val serverManager = udpClient.defaultServerManager()
+        serverManager.registerServer(
+            server<String, String>(
+                requestType = 0,
+                responseType = 1
+            ) { _, remoteAddress, request, _ ->
+                println("Receive client msg from $remoteAddress: $request")
+                "Hello, Client"
+            }
+        )
+        udpClient.startTask()
+        udpClient.state().filter { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }.first()
     }
 
     const val BIND_PORT = 1997

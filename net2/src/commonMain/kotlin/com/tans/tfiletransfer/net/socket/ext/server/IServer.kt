@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.ext.server
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.SocketRuntimeException
@@ -25,7 +25,7 @@ interface IServer<Request : Any, Response : Any> {
         remoteAddress: AddressWithPort,
         requestPkt: PackageData,
         converterFactory: IConverterFactory,
-        connectionTask: ConnectionTask,
+        connectionTask: IConnectionTask,
         isNewRequest: Boolean
     ) {
         // 找到 request 的 body 转换器
@@ -83,8 +83,6 @@ interface IServer<Request : Any, Response : Any> {
                     }
                 }
 
-            } else {
-                throw SocketRuntimeException("Didn't find pkt converter responseType=$responseType, responseTypeClazz=$responseClass")
             }
         } else {
             throw SocketRuntimeException("Didn't find request type converter requestType=$requestType, requestTypeClazz=$requestClass")

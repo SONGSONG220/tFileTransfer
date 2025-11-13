@@ -1,9 +1,14 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.socket.getBroadcastAddressV4
 import com.tans.tfiletransfer.net.socket.udp.UdpTask
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 
 object UdpBroadcastReceiverTest {
 
@@ -16,11 +21,17 @@ object UdpBroadcastReceiverTest {
                 localAddress = AddressWithPort(broadcast.address, 1997)
             )
         )
+        val serverManager = task.defaultServerManager()
+        serverManager.registerServer(
+            server<String, Unit>(
+                requestType = 0,
+                responseType = -1,
+            ) { _, remoteAddress, request, _ ->
+                println("Receive BroadcastMsg from ${remoteAddress}: $request}")
+                null
+            }
+        )
         task.startTask()
-        val readChannel = task.pktReadChannel()
-        for (pkt in readChannel) {
-            println("Receive BroadcastMsg from ${pkt.address}: ${String(pkt.pkt.data.array, 0, pkt.pkt.data.contentSize,
-                Charsets.UTF_8)}")
-        }
+        task.state().filter { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }.first()
     }
 }

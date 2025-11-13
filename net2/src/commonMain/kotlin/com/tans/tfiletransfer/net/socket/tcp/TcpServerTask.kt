@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
@@ -21,7 +21,7 @@ import kotlinx.coroutines.sync.Mutex
 class TcpServerTask(
     private val bindAddress: AddressWithPort,
     override val bufferPool: BufferPool = BufferPool()
-) : ConnectionTask {
+) : IConnectionTask {
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()

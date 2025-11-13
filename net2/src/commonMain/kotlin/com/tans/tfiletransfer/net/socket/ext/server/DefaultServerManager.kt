@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.ext.server
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
@@ -15,8 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class DefaultServerManager(
-    val connectionTask: ConnectionTask,
-    private val converterFactory: IConverterFactory = DefaultConverterFactory(),
+    override val connectionTask: IConnectionTask,
+    override val converterFactory: IConverterFactory = DefaultConverterFactory(),
 ) : IServerManager {
     private val serversLock = Mutex()
     private val servers = mutableListOf<IServer<*, *>>()
@@ -139,4 +139,8 @@ class DefaultServerManager(
     companion object {
         private const val TAG = "DefaultServerManager"
     }
+}
+
+fun IConnectionTask.defaultServerManager(converterFactory: IConverterFactory = DefaultConverterFactory()): IServerManager {
+    return DefaultServerManager(this, converterFactory)
 }

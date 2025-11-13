@@ -1,7 +1,7 @@
 package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import io.ktor.network.selector.SelectorManager
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 
-abstract class BaseTcpClientTask() : ConnectionTask {
+abstract class BaseTcpClientTask() : IConnectionTask {
 
     protected abstract val tag: String
 

@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.ext.client
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.SocketRuntimeException
@@ -22,10 +22,9 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KClass
 
-
 class DefaultClientManager(
-    val connectionTask: ConnectionTask,
-    val converterFactory: IConverterFactory = DefaultConverterFactory(),
+    override val connectionTask: IConnectionTask,
+    override val converterFactory: IConverterFactory = DefaultConverterFactory(),
 ) : IClientManager {
 
     private val waitingResponseTasksLock = Mutex()
@@ -317,4 +316,8 @@ class DefaultClientManager(
         private const val RETRY_DELAY = 100L
         private const val TAG = "DefaultClientManager"
     }
+}
+
+fun IConnectionTask.defaultClientManager(converterFactory: IConverterFactory = DefaultConverterFactory()): IClientManager {
+    return DefaultClientManager(this, converterFactory)
 }

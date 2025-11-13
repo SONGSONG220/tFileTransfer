@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.udp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTask
+import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
@@ -29,7 +29,7 @@ import kotlinx.io.InternalIoApi
 class UdpTask(
     val connectionType: UdpConnectionType,
     override val bufferPool: BufferPool = BufferPool()
-) : ConnectionTask {
+) : IConnectionTask {
 
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)

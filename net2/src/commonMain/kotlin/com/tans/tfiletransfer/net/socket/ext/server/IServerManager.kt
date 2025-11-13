@@ -1,6 +1,8 @@
 package com.tans.tfiletransfer.net.socket.ext.server
 
-interface IServerManager {
+import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
+
+interface IServerManager : IConnectionManager {
 
     fun <Request : Any, Response : Any> registerServer(s: IServer<Request, Response>)
 

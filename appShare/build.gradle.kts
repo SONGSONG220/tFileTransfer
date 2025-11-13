@@ -9,7 +9,6 @@ plugins {
 
 kotlin {
 
-
     androidLibrary {
         namespace = "com.tans.tfiletransporter"
         compileSdk = properties["ANDROID_COMPILE_SDK"].toString().toInt()

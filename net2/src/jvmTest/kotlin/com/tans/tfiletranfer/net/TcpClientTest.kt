@@ -4,6 +4,9 @@ import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.ext.client.defaultClientManager
+import com.tans.tfiletransfer.net.socket.ext.client.requestSimplify
+import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.socket.tcp.TcpClientTask
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -14,9 +17,10 @@ import kotlinx.coroutines.launch
 object TcpClientTest {
 
     suspend fun run() {
-        val bufferPool = BufferPool()
-        val clientTask = TcpClientTask(serverAddress = AddressWithPort("127.0.0.1", 1996), bufferPool = bufferPool)
+        val localAddress = findLocalAddressV4()[0]
+        val clientTask = TcpClientTask(serverAddress = AddressWithPort(localAddress, TcpServerTest.BIND_PORT))
         delay(200)
+        val clientManager = clientTask.defaultClientManager()
         clientTask.startTask()
         coroutineScope {
             launch {
@@ -25,28 +29,12 @@ object TcpClientTest {
                 }
             }
             launch {
-                for (pkt in clientTask.pktReadChannel()) {
-                    println("Client receive: ${String(pkt.data.array, 0, pkt.data.contentSize, Charsets.UTF_8)}")
-                    bufferPool.put(pkt.data)
-                }
-            }
-            launch {
-                clientTask.state().filter { it == ConnectionTaskState.Connected }.first()
-                val greetingToServer = "Hello, server"
-                val buffer = bufferPool.get(1024)
-                val okioBuffer = okio.Buffer()
-                okioBuffer.writeUtf8(greetingToServer)
-                val contentSize = okioBuffer.read(buffer.array)
-                buffer.contentSize = contentSize
-                clientTask.writePktData(
-                    PackageData(
-                        type = 1,
-                        messageId = 1000L,
-                        data = buffer
-                    )
+                clientTask.state().filter { it is ConnectionTaskState.Connected }.first()
+                val serverReply = clientManager.requestSimplify<String, String>(
+                    type = 0,
+                    request = "Hello, Server"
                 )
-                // delay(1000)
-                // clientTask.stopTask()
+                println("Receive server msg: $serverReply")
             }
         }
     }

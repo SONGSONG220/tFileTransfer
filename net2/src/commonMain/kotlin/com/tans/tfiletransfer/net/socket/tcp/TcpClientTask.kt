@@ -8,7 +8,8 @@ import io.ktor.network.sockets.aSocket
 
 class TcpClientTask(
     private val serverAddress: AddressWithPort,
-    override val bufferPool: BufferPool = BufferPool()
+    override val bufferPool: BufferPool = BufferPool(),
+    override val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : BaseTcpClientTask() {
 
     override val tag: String = TAG

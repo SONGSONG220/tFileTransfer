@@ -4,6 +4,7 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.SocketRuntimeException
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.openReadChannel
@@ -14,18 +15,25 @@ import io.ktor.utils.io.readLong
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeInt
 import io.ktor.utils.io.writeLong
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlin.time.TimeSource
 
 abstract class BaseTcpClientTask() : IConnectionTask {
 
     protected abstract val tag: String
+
+    open val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
+
+    private val checkReadWriteLimit: Boolean = readWriteIdleLimitInMillis in 1 until readWriteIdleLimitInMillis
 
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -34,6 +42,8 @@ abstract class BaseTcpClientTask() : IConnectionTask {
     protected val pktReadChannel: Channel<PackageData> = Channel(10)
     protected val pktWriteChannel: Channel<PackageData> = Channel(10)
     protected var socket: Socket? = null
+
+    private val readWriteTimeMark = atomic<TimeSource.Monotonic.ValueTimeMark?>(null)
 
     override suspend fun onStopTask(cause: String?) {
         NetLog.d(tag, "Task closed.")
@@ -58,6 +68,23 @@ abstract class BaseTcpClientTask() : IConnectionTask {
     }
 
     protected fun readSocketData(socket: Socket) {
+        if (checkReadWriteLimit) {
+            TimeSource.Monotonic.markNow()
+            coroutineScope.launch {
+                try {
+                    while(true) {
+                        delay(readWriteIdleLimitInMillis)
+                        val mark = readWriteTimeMark.value
+                        if (mark == null || mark.elapsedNow().inWholeMilliseconds > readWriteIdleLimitInMillis) {
+                            error(SocketRuntimeException("Read/Write idle timeout: ${readWriteIdleLimitInMillis}ms"))
+                            break
+                        }
+                    }
+                } catch (_: Throwable) {
+
+                }
+            }
+        }
         coroutineScope.launch {
             try {
                 val readChannel = socket.openReadChannel()
@@ -69,6 +96,7 @@ abstract class BaseTcpClientTask() : IConnectionTask {
                     val data = bufferPool.get(dataLen)
                     readChannel.readAvailable(buffer = data.array, offset = 0, length = dataLen)
                     data.contentSize = dataLen
+                    readWriteTimeMark.getAndSet(TimeSource.Monotonic.markNow())
                     pktReadChannel.send(
                         PackageData(
                             type = type,
@@ -95,6 +123,7 @@ abstract class BaseTcpClientTask() : IConnectionTask {
                     writeChannel.writeLong(pkt.messageId)
                     writeChannel.writeFully(pkt.data.array, 0, pkt.data.contentSize)
                     writeChannel.flush()
+                    readWriteTimeMark.getAndSet(TimeSource.Monotonic.markNow())
                     bufferPool.put(pkt.data)
                 }
             } catch (e: Throwable) {

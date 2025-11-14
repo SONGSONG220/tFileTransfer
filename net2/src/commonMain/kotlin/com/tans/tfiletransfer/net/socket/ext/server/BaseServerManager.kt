@@ -10,7 +10,7 @@ import kotlinx.coroutines.sync.withLock
 
 internal abstract class BaseServerManager() : IServerManager {
 
-    override val connectionTask: IConnectionTask = connection.connectionTask
+    abstract val tag: String
 
     private val serversLock = Mutex()
     private val servers = mutableListOf<IServer<*, *>>()
@@ -42,7 +42,7 @@ internal abstract class BaseServerManager() : IServerManager {
                     // NetLog.w(TAG, "Don't find server to handle ${pkt.type} message.")
                 }
             } catch (e: Throwable) {
-                NetLog.e(TAG, "Handle msg from $remoteAddress fail: localAddress=$localAddress, type=${pkt.type}, error=${e.message}", e)
+                NetLog.e(tag, "Handle msg from $remoteAddress fail: localAddress=$localAddress, type=${pkt.type}, error=${e.message}", e)
             }
 
         }
@@ -70,9 +70,5 @@ internal abstract class BaseServerManager() : IServerManager {
                 servers.clear()
             }
         }
-    }
-
-    companion object {
-        private const val TAG = "DefaultServerManager"
     }
 }

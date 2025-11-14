@@ -158,7 +158,9 @@ class UdpTask(
     }
 
     private fun release() {
-        socket?.close()
+        runCatching {
+            socket?.close()
+        }
         socket = null
         selector.close()
         pktWriteChannel.close()

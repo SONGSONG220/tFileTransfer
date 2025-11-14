@@ -16,6 +16,8 @@ internal class DefaultUdpServerManager(
     override val connection: Connection.UdpConnection,
     override val converterFactory: IConverterFactory = DefaultConverterFactory(),
 ) : BaseServerManager(), IUdpServerManager {
+
+    override val tag: String = TAG
     override val connectionTask: IUdpTask = connection.connectionTask
 
     init {

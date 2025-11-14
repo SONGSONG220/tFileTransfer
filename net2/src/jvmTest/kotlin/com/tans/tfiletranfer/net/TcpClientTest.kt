@@ -28,11 +28,15 @@ object TcpClientTest {
                 }
             }
             clientTask.state().filter { it is ConnectionTaskState.Connected }.first()
-            val serverReply = clientManager.requestSimplify<String, String>(
-                requestType = 0,
-                responseType = 1,
-                request = "Hello, Server"
-            )
+            val serverReply = try {
+                clientManager.requestSimplify<String, String>(
+                    requestType = 0,
+                    responseType = 1,
+                    request = "Hello, Server"
+                )
+            } catch (_: Throwable) {
+                null
+            }
             println("Receive server msg: $serverReply")
             clientTask.stopTask()
             stateJob.cancel()

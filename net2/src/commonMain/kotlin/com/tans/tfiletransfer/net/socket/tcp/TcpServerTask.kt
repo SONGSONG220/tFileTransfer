@@ -70,9 +70,11 @@ class TcpServerTask(
     }
 
     private fun release() {
-        selectorManager.close()
-        serverSocket?.close()
+        runCatching {
+            serverSocket?.close()
+        }
         serverSocket = null
+        selectorManager.close()
         clientTaskChannel.close()
         for (t in this.clientTasks) {
             t.stopTask()

@@ -16,6 +16,8 @@ internal class DefaultTcpServerManager(
 ) : BaseServerManager(), ITcpServerManager {
     override val connectionTask: ITcpClientTask = connection.connectionTask
 
+    override val tag: String = TAG
+
     init {
         connectionTask.coroutineScope.launch {
             try {

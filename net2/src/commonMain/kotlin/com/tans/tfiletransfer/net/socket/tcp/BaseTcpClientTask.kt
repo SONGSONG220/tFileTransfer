@@ -102,7 +102,9 @@ abstract class BaseTcpClientTask(
     }
 
     private fun release() {
-        socket?.close()
+        runCatching {
+            socket?.close()
+        }
         socket = null
         selector.close()
         pktWriteChannel.close()

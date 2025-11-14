@@ -3,7 +3,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
 import io.ktor.network.sockets.Socket
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 
 interface ITcpClientTask : IConnectionTask {
 
@@ -11,5 +11,5 @@ interface ITcpClientTask : IConnectionTask {
 
     suspend fun writePktData(pkt: PackageData): Boolean
 
-    fun pktReadChannel(): ReceiveChannel<PackageData>
+    fun pktReadChannel(): Flow<PackageData>
 }

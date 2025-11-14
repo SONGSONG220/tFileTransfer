@@ -2,14 +2,11 @@ package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
-import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
-import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.ext.defaultUdpClientManager
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.socket.udp.UdpTask
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -19,8 +16,9 @@ object UdpServerTest {
         val localAddress = findLocalAddressV4()[0]
         val udpClient = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Bind(AddressWithPort(localAddress, BIND_PORT)),
+            readWriteIdleLimitInMillis = 5000L
         )
-        val serverManager = udpClient.defaultServerManager()
+        val serverManager = udpClient.defaultServerManager().defaultUdpClientManager()
         serverManager.registerServer(
             server<String, String>(
                 requestType = 0,

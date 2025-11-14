@@ -33,28 +33,29 @@ internal class DefaultServerManager(
                 is Connection.TcpConnection -> {
                     connectionTask.coroutineScope.launch {
                         try {
-                            for (pkt in connectionTask.pktReadChannel()) {
-                                val socket = connectionTask.socket()
-                                if (socket != null) {
-                                    val localAddress = (socket.localAddress as InetSocketAddress).let {
-                                        AddressWithPort(
-                                            address = it.hostname,
-                                            port = it.port
+                            connectionTask.pktReadChannel()
+                                .collect { pkt ->
+                                    val socket = connectionTask.socket()
+                                    if (socket != null) {
+                                        val localAddress = (socket.localAddress as InetSocketAddress).let {
+                                            AddressWithPort(
+                                                address = it.hostname,
+                                                port = it.port
+                                            )
+                                        }
+                                        val remoteAddress = (socket.remoteAddress as InetSocketAddress).let {
+                                            AddressWithPort(
+                                                address = it.hostname,
+                                                port = it.port
+                                            )
+                                        }
+                                        onNewMessage(
+                                            localAddress = localAddress,
+                                            remoteAddress = remoteAddress,
+                                            pkt = pkt
                                         )
                                     }
-                                    val remoteAddress = (socket.remoteAddress as InetSocketAddress).let {
-                                        AddressWithPort(
-                                            address = it.hostname,
-                                            port = it.port
-                                        )
-                                    }
-                                    onNewMessage(
-                                        localAddress = localAddress,
-                                        remoteAddress = remoteAddress,
-                                        pkt = pkt
-                                    )
                                 }
-                            }
                         } catch (e: Throwable) {
                             NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                         }
@@ -63,22 +64,23 @@ internal class DefaultServerManager(
                 is Connection.UdpConnection -> {
                     connectionTask.coroutineScope.launch {
                         try {
-                            for (pkt in connectionTask.pktReadChannel()) {
-                                val socket = connectionTask.socket() as? ABoundSocket
-                                if (socket != null) {
-                                    val localAddress = (socket.localAddress as InetSocketAddress).let {
-                                        AddressWithPort(
-                                            address = it.hostname,
-                                            port = it.port
+                            connectionTask.pktReadChannel()
+                                .collect { pkt ->
+                                    val socket = connectionTask.socket() as? ABoundSocket
+                                    if (socket != null) {
+                                        val localAddress = (socket.localAddress as InetSocketAddress).let {
+                                            AddressWithPort(
+                                                address = it.hostname,
+                                                port = it.port
+                                            )
+                                        }
+                                        onNewMessage(
+                                            localAddress = localAddress,
+                                            remoteAddress = pkt.address,
+                                            pkt = pkt.pkt
                                         )
                                     }
-                                    onNewMessage(
-                                        localAddress = localAddress,
-                                        remoteAddress = pkt.address,
-                                        pkt = pkt.pkt
-                                    )
                                 }
-                            }
                         } catch (e: Throwable) {
                             NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                         }
@@ -111,7 +113,7 @@ internal class DefaultServerManager(
                         isNewRequest = isNew
                     )
                 } else {
-                    NetLog.e(TAG, "Don't find server to handle ${pkt.type} message.")
+                    // NetLog.w(TAG, "Don't find server to handle ${pkt.type} message.")
                 }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Handle msg from $remoteAddress fail: localAddress=$localAddress, type=${pkt.type}, error=${e.message}", e)

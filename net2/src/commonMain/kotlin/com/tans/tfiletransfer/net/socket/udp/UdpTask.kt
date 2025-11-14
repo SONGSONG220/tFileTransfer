@@ -17,8 +17,10 @@ import io.ktor.utils.io.core.readAvailable
 import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.io.InternalIoApi
 
@@ -30,7 +32,7 @@ class UdpTask(
 
     private val selector = SelectorManager(Dispatchers.IO)
 
-    private val pktReadChannel: Channel<PackageDataWithAddress> = Channel(10)
+    private val pktReadChannel: MutableSharedFlow<PackageDataWithAddress> = MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
 
     private val pktWriteChannel: Channel<PackageDataWithAddress> = Channel(10)
 
@@ -84,7 +86,7 @@ class UdpTask(
 
     override fun socket(): ASocket? = socket
 
-    override fun pktReadChannel(): ReceiveChannel<PackageDataWithAddress> = pktReadChannel
+    override fun pktReadChannel(): Flow<PackageDataWithAddress> = pktReadChannel
 
     override suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean {
         return if (currentState() == ConnectionTaskState.Connected) {
@@ -115,7 +117,7 @@ class UdpTask(
                     val data = bufferPool.get(dataLen)
                     data.contentSize = dataLen
                     pkt.readAvailable(buffer = data.array, offset = 0, length = dataLen)
-                    pktReadChannel.send(
+                    pktReadChannel.emit(
                         PackageDataWithAddress(
                             pkt = PackageData(
                                 type = type,
@@ -159,7 +161,6 @@ class UdpTask(
         socket?.close()
         socket = null
         selector.close()
-        pktReadChannel.close()
         pktWriteChannel.close()
     }
 

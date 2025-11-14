@@ -39,14 +39,16 @@ internal abstract class BaseClientManager(
             try {
                 when (connection) {
                     is Connection.TcpConnection -> {
-                        for (pkt in connection.connectionTask.pktReadChannel()) {
-                            onResponseData(pkt)
-                        }
+                        connection.connectionTask.pktReadChannel()
+                            .collect {
+                                onResponseData(it)
+                            }
                     }
                     is Connection.UdpConnection -> {
-                        for (pkt in connection.connectionTask.pktReadChannel()) {
-                            onResponseData(pkt.pkt)
-                        }
+                        connection.connectionTask.pktReadChannel()
+                            .collect {
+                                onResponseData(it.pkt)
+                            }
                     }
                 }
             } catch (e: Throwable) {
@@ -63,16 +65,11 @@ internal abstract class BaseClientManager(
         connectionTask.coroutineScope.launch {
             waitingResponseTasksLock.withLock {
                 val iterator = waitingResponseTasks.iterator()
-                var handled = false
                 while (iterator.hasNext()) {
-                    handled = iterator.next().onResponseData(msg)
-                    if (handled) {
+                    if (iterator.next().onResponseData(msg)) {
                         iterator.remove()
                         break
                     }
-                }
-                if (!handled) {
-                    NetLog.w(tag, "No waiting task to handle msg type=${msg.type}, messageId=${msg.messageId}")
                 }
             }
         }

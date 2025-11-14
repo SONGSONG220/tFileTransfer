@@ -16,8 +16,10 @@ import io.ktor.utils.io.writeInt
 import io.ktor.utils.io.writeLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 abstract class BaseTcpClientTask(
@@ -25,7 +27,7 @@ abstract class BaseTcpClientTask(
 ) : BaseConnectionTask(readWriteIdleLimitInMillis),ITcpClientTask {
 
     protected val selector = SelectorManager(Dispatchers.IO)
-    protected val pktReadChannel: Channel<PackageData> = Channel(10)
+    protected val pktReadChannel: MutableSharedFlow<PackageData> = MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
     protected val pktWriteChannel: Channel<PackageData> = Channel(10)
     protected var socket: Socket? = null
 
@@ -39,7 +41,7 @@ abstract class BaseTcpClientTask(
 
     override fun socket(): Socket? = socket
 
-    override fun pktReadChannel(): ReceiveChannel<PackageData> = pktReadChannel
+    override fun pktReadChannel(): Flow<PackageData> = pktReadChannel
 
     override suspend fun writePktData(pkt: PackageData): Boolean {
         return if (currentState() == ConnectionTaskState.Connected) {
@@ -62,7 +64,7 @@ abstract class BaseTcpClientTask(
                     val data = bufferPool.get(dataLen)
                     readChannel.readAvailable(buffer = data.array, offset = 0, length = dataLen)
                     data.contentSize = dataLen
-                    pktReadChannel.send(
+                    pktReadChannel.emit(
                         PackageData(
                             type = type,
                             messageId = msgId,
@@ -103,7 +105,6 @@ abstract class BaseTcpClientTask(
         socket?.close()
         socket = null
         selector.close()
-        pktReadChannel.close()
         pktWriteChannel.close()
     }
 }

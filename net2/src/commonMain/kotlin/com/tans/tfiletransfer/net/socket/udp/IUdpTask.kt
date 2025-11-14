@@ -3,7 +3,7 @@ package com.tans.tfiletransfer.net.socket.udp
 import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import io.ktor.network.sockets.ASocket
-import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.flow.Flow
 
 interface IUdpTask : IConnectionTask {
 
@@ -11,5 +11,5 @@ interface IUdpTask : IConnectionTask {
 
     suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean
 
-    fun pktReadChannel(): ReceiveChannel<PackageDataWithAddress>
+    fun pktReadChannel(): Flow<PackageDataWithAddress>
 }

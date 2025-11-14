@@ -22,7 +22,7 @@ class TcpServerTask(
     private val bindAddress: AddressWithPort,
     override val bufferPool: BufferPool = BufferPool(),
     val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
-) : IConnectionTask {
+) : ITcpServerTask {
     override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
@@ -58,7 +58,7 @@ class TcpServerTask(
         }
     }
 
-    fun clientChannel(): Channel<ClientTask> = clientTaskChannel
+    override fun clientChannel(): Channel<ClientTask> = clientTaskChannel
 
     override suspend fun onStopTask(cause: String?) {
         NetLog.d(TAG, "Stop task: $cause")

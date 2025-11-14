@@ -4,77 +4,85 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
-import com.tans.tfiletransfer.net.socket.tcp.BaseTcpClientTask
-import com.tans.tfiletransfer.net.socket.udp.UdpTask
+import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
+import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import io.ktor.network.sockets.ABoundSocket
 import io.ktor.network.sockets.InetSocketAddress
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class DefaultServerManager(
-    override val connectionTask: IConnectionTask,
+internal class DefaultServerManager(
+    override val connection: Connection,
     override val converterFactory: IConverterFactory = DefaultConverterFactory(),
 ) : IServerManager {
+
+    override val connectionTask: IConnectionTask = connection.connectionTask
+
     private val serversLock = Mutex()
     private val servers = mutableListOf<IServer<*, *>>()
     private val messageIdLock = Mutex()
     private val handledMessageId = mutableSetOf<Long>()
 
     init {
-        if (connectionTask is BaseTcpClientTask) {
-            connectionTask.coroutineScope.launch {
-                try {
-                    for (pkt in connectionTask.pktReadChannel()) {
-                        val socket = connectionTask.socket()
-                        if (socket != null) {
-                            val localAddress = (socket.localAddress as InetSocketAddress).let {
-                                AddressWithPort(
-                                    address = it.hostname,
-                                    port = it.port
-                                )
+        connection.apply {
+            when (this) {
+                is Connection.TcpConnection -> {
+                    connectionTask.coroutineScope.launch {
+                        try {
+                            for (pkt in connectionTask.pktReadChannel()) {
+                                val socket = connectionTask.socket()
+                                if (socket != null) {
+                                    val localAddress = (socket.localAddress as InetSocketAddress).let {
+                                        AddressWithPort(
+                                            address = it.hostname,
+                                            port = it.port
+                                        )
+                                    }
+                                    val remoteAddress = (socket.remoteAddress as InetSocketAddress).let {
+                                        AddressWithPort(
+                                            address = it.hostname,
+                                            port = it.port
+                                        )
+                                    }
+                                    onNewMessage(
+                                        localAddress = localAddress,
+                                        remoteAddress = remoteAddress,
+                                        pkt = pkt
+                                    )
+                                }
                             }
-                            val remoteAddress = (socket.remoteAddress as InetSocketAddress).let {
-                                AddressWithPort(
-                                    address = it.hostname,
-                                    port = it.port
-                                )
-                            }
-                            onNewMessage(
-                                localAddress = localAddress,
-                                remoteAddress = remoteAddress,
-                                pkt = pkt
-                            )
+                        } catch (e: Throwable) {
+                            NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                         }
                     }
-                } catch (e: Throwable) {
-                    NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                 }
-            }
-        }
-        if (connectionTask is UdpTask) {
-            connectionTask.coroutineScope.launch {
-                try {
-                    for (pkt in connectionTask.pktReadChannel()) {
-                        val socket = connectionTask.socket() as? ABoundSocket
-                        if (socket != null) {
-                            val localAddress = (socket.localAddress as InetSocketAddress).let {
-                                AddressWithPort(
-                                    address = it.hostname,
-                                    port = it.port
-                                )
+                is Connection.UdpConnection -> {
+                    connectionTask.coroutineScope.launch {
+                        try {
+                            for (pkt in connectionTask.pktReadChannel()) {
+                                val socket = connectionTask.socket() as? ABoundSocket
+                                if (socket != null) {
+                                    val localAddress = (socket.localAddress as InetSocketAddress).let {
+                                        AddressWithPort(
+                                            address = it.hostname,
+                                            port = it.port
+                                        )
+                                    }
+                                    onNewMessage(
+                                        localAddress = localAddress,
+                                        remoteAddress = pkt.address,
+                                        pkt = pkt.pkt
+                                    )
+                                }
                             }
-                            onNewMessage(
-                                localAddress = localAddress,
-                                remoteAddress = pkt.address,
-                                pkt = pkt.pkt
-                            )
+                        } catch (e: Throwable) {
+                            NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                         }
                     }
-                } catch (e: Throwable) {
-                    NetLog.e(TAG, "Read pkt error: ${e.message}", e)
                 }
             }
         }
@@ -141,6 +149,10 @@ class DefaultServerManager(
     }
 }
 
-fun IConnectionTask.defaultServerManager(converterFactory: IConverterFactory = DefaultConverterFactory()): IServerManager {
-    return DefaultServerManager(this, converterFactory)
+fun ITcpClientTask.defaultServerManager(converterFactory: IConverterFactory = DefaultConverterFactory()): IServerManager {
+    return DefaultServerManager(Connection.TcpConnection(this), converterFactory)
+}
+
+fun IUdpTask.defaultServerManager(converterFactory: IConverterFactory = DefaultConverterFactory()): IServerManager {
+    return DefaultServerManager(Connection.UdpConnection(this), converterFactory)
 }

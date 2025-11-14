@@ -1,7 +1,6 @@
 package com.tans.tfiletransfer.net.socket
 
 import com.tans.tfiletransfer.net.NetLog
-import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

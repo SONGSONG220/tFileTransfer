@@ -18,6 +18,7 @@ import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import kotlinx.io.InternalIoApi
 
@@ -25,7 +26,7 @@ class UdpTask(
     val connectionType: UdpConnectionType,
     override val bufferPool: BufferPool = BufferPool(),
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
-) : BaseConnectionTask(readWriteIdleLimitInMillis) {
+) : BaseConnectionTask(readWriteIdleLimitInMillis), IUdpTask {
 
     private val selector = SelectorManager(Dispatchers.IO)
 
@@ -81,22 +82,11 @@ class UdpTask(
         release()
     }
 
-    fun socket(): ASocket? = socket
+    override fun socket(): ASocket? = socket
 
-    fun pktReadChannel(): Channel<PackageDataWithAddress> = pktReadChannel
+    override fun pktReadChannel(): ReceiveChannel<PackageDataWithAddress> = pktReadChannel
 
-    suspend fun writePktData(pkt: PackageData): Boolean {
-        return if (connectionType is UdpConnectionType.Connect) {
-            writePktData(PackageDataWithAddress(
-                pkt = pkt,
-                address = connectionType.remoteAddress
-            ))
-        } else {
-            false
-        }
-    }
-
-    suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean {
+    override suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean {
         return if (currentState() == ConnectionTaskState.Connected) {
             pktWriteChannel.send(pktDataWithAddress)
             true

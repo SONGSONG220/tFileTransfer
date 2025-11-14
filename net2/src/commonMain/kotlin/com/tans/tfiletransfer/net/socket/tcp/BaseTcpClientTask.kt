@@ -17,11 +17,12 @@ import io.ktor.utils.io.writeLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 abstract class BaseTcpClientTask(
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
-) : BaseConnectionTask(readWriteIdleLimitInMillis) {
+) : BaseConnectionTask(readWriteIdleLimitInMillis),ITcpClientTask {
 
     protected val selector = SelectorManager(Dispatchers.IO)
     protected val pktReadChannel: Channel<PackageData> = Channel(10)
@@ -36,11 +37,11 @@ abstract class BaseTcpClientTask(
         release()
     }
 
-    fun socket(): Socket? = socket
+    override fun socket(): Socket? = socket
 
-    fun pktReadChannel(): Channel<PackageData> = pktReadChannel
+    override fun pktReadChannel(): ReceiveChannel<PackageData> = pktReadChannel
 
-    suspend fun writePktData(pkt: PackageData): Boolean {
+    override suspend fun writePktData(pkt: PackageData): Boolean {
         return if (currentState() == ConnectionTaskState.Connected) {
             pktWriteChannel.send(pkt)
             true

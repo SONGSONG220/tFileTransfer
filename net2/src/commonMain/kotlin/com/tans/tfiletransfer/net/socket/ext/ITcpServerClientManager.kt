@@ -1,6 +1,6 @@
 package com.tans.tfiletransfer.net.socket.ext
 
 import com.tans.tfiletransfer.net.socket.ext.client.ITcpClientManager
-import com.tans.tfiletransfer.net.socket.ext.server.IServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.ITcpServerManager
 
-interface ITcpServerClientManager : IServerManager, ITcpClientManager
+interface ITcpServerClientManager : ITcpServerManager, ITcpClientManager

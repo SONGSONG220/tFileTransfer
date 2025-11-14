@@ -2,13 +2,8 @@ package com.tans.tfiletransfer.net.socket.ext.server
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.IConnectionTask
 import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.SocketRuntimeException
-import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
-import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
-import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlin.reflect.KClass
 
 private const val TAG = "IServer"
@@ -24,19 +19,18 @@ interface IServer<Request : Any, Response : Any> {
         localAddress: AddressWithPort,
         remoteAddress: AddressWithPort,
         requestPkt: PackageData,
-        converterFactory: IConverterFactory,
-        connectionTask: IConnectionTask,
+        serverManager: IServerManager,
         isNewRequest: Boolean
     ) {
         // 找到 request 的 body 转换器
-        val requestTypeConverter = converterFactory.findTypeConverter(requestPkt.type, requestClass)
+        val requestTypeConverter = serverManager.converterFactory.findTypeConverter(requestPkt.type, requestClass)
         if (requestTypeConverter != null) {
             // 转换 request 的数据
             val convertedRequest = requestTypeConverter.convert(
                 type = requestPkt.type,
                 typeClass = requestClass,
                 pkt = requestPkt,
-                bufferPool = connectionTask.bufferPool
+                bufferPool = serverManager.connectionTask.bufferPool
             )
             // 处理 request 的数据并获取 response
             val response = onRequest(
@@ -48,7 +42,7 @@ interface IServer<Request : Any, Response : Any> {
             if (response != null) {
                 // 找到 response 的 pkt 转换器
                 val responseConverter =
-                    converterFactory.findPackageConverter(responseType, responseClass)
+                    serverManager.converterFactory.findPackageConverter(responseType, responseClass)
                 if (responseConverter != null) {
                     // 转换 response 到 pkt
                     val responsePkt = responseConverter.convert(
@@ -56,32 +50,15 @@ interface IServer<Request : Any, Response : Any> {
                         messageId = requestPkt.messageId,
                         data = response,
                         dataTypeClass = responseClass,
-                        bufferPool = connectionTask.bufferPool
+                        bufferPool = serverManager.connectionTask.bufferPool
                     )
-                    // 发送 response 数据
-                    if (connectionTask is IUdpTask) {
-                        val ret = connectionTask.writePktData(
-                            pktDataWithAddress = PackageDataWithAddress(
-                                pkt = responsePkt,
-                                address = remoteAddress
-                            )
+                    val ret = serverManager.replyClient(responsePkt, remoteAddress)
+
+                    if (!ret) {
+                        NetLog.e(
+                            TAG,
+                            "Reply client fail, requestType=$requestType, responseType=$responseType"
                         )
-                        if (!ret) {
-                            NetLog.e(
-                                TAG,
-                                "Send udp replay fail, requestType=$requestType, responseType=$responseType"
-                            )
-                        }
-                    } else if (connectionTask is ITcpClientTask) {
-                        val ret = connectionTask.writePktData(responsePkt)
-                        if (!ret) {
-                            NetLog.e(
-                                TAG,
-                                "Send tcp replay fail, requestType=$requestType, responseType=$responseType"
-                            )
-                        }
-                    } else {
-                        NetLog.e(TAG, "Unknown connection task type, connectionTask=$connectionTask, can't replay.")
                     }
                 }
 

@@ -2,9 +2,7 @@ package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
-import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.buffer.BufferPool
-import com.tans.tfiletransfer.net.socket.ext.defaultTcpClientManager
+import com.tans.tfiletransfer.net.socket.ext.defaultClientManager
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
@@ -28,7 +26,7 @@ object TcpServerTest {
                 }
             }
             val client = serverTask.clientChannel().receive()
-            val serverManager = client.defaultServerManager().defaultTcpClientManager()
+            val serverManager = client.defaultServerManager().defaultClientManager()
             serverManager.registerServer(
                 server<String, String>(
                     requestType = 0,

@@ -1,16 +1,18 @@
 package com.tans.tfiletransfer.net.socket.ext
 
+import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.ext.client.DefaultTcpClientManager
 import com.tans.tfiletransfer.net.socket.ext.client.ITcpClientManager
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
-import com.tans.tfiletransfer.net.socket.ext.server.DefaultServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.DefaultTcpServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.IServer
-import com.tans.tfiletransfer.net.socket.ext.server.IServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.ITcpServerManager
 import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
 import kotlin.reflect.KClass
 
 internal class DefaultTcpServerClientManager(
-    private val serverManager: IServerManager,
+    private val serverManager: ITcpServerManager,
     private val clientManager: ITcpClientManager,
 ) : ITcpServerClientManager {
 
@@ -24,6 +26,13 @@ internal class DefaultTcpServerClientManager(
 
     override fun <Request : Any, Response : Any> unregisterServer(s: IServer<Request, Response>) {
         serverManager.unregisterServer(s)
+    }
+
+    override suspend fun replyClient(
+        pkt: PackageData,
+        targetAddress: AddressWithPort
+    ): Boolean {
+        return serverManager.replyClient(pkt, targetAddress)
     }
 
     override fun clearAllServers() {
@@ -65,16 +74,16 @@ internal class DefaultTcpServerClientManager(
 
 fun ITcpClientManager.defaultServerManager(): ITcpServerClientManager {
     return DefaultTcpServerClientManager(
-        serverManager = DefaultServerManager(connection, converterFactory),
+        serverManager = DefaultTcpServerManager(connection, converterFactory),
         clientManager = this,
     )
 }
 
-fun IServerManager.defaultTcpClientManager(): ITcpServerClientManager {
+fun ITcpServerManager.defaultClientManager(): ITcpServerClientManager {
     return DefaultTcpServerClientManager(
         serverManager = this,
         clientManager = DefaultTcpClientManager(
-            connection as Connection.TcpConnection,
+            connection,
             converterFactory
         ),
     )

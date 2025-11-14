@@ -1,17 +1,18 @@
 package com.tans.tfiletransfer.net.socket.ext
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.ext.client.DefaultUdpClientManager
 import com.tans.tfiletransfer.net.socket.ext.client.IUdpClientManager
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
-import com.tans.tfiletransfer.net.socket.ext.server.DefaultServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.DefaultUdpServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.IServer
-import com.tans.tfiletransfer.net.socket.ext.server.IServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.IUdpServerManager
 import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlin.reflect.KClass
 
 internal class DefaultUdpServerClientManager(
-    private val serverManager: IServerManager,
+    private val serverManager: IUdpServerManager,
     private val clientManager: IUdpClientManager,
 ) : IUdpServerClientManager {
 
@@ -25,6 +26,13 @@ internal class DefaultUdpServerClientManager(
 
     override fun <Request : Any, Response : Any> unregisterServer(s: IServer<Request, Response>) {
         serverManager.unregisterServer(s)
+    }
+
+    override suspend fun replyClient(
+        pkt: PackageData,
+        targetAddress: AddressWithPort
+    ): Boolean {
+        return serverManager.replyClient(pkt, targetAddress)
     }
 
     override fun clearAllServers() {
@@ -70,16 +78,16 @@ internal class DefaultUdpServerClientManager(
 
 fun IUdpClientManager.defaultServerManager(): IUdpServerClientManager {
     return DefaultUdpServerClientManager(
-        serverManager = DefaultServerManager(connection, converterFactory),
+        serverManager = DefaultUdpServerManager(connection, converterFactory),
         clientManager = this,
     )
 }
 
-fun IServerManager.defaultUdpClientManager(): IUdpServerClientManager {
+fun IUdpServerManager.defaultClientManager(): IUdpServerClientManager {
     return DefaultUdpServerClientManager(
         serverManager = this,
         clientManager = DefaultUdpClientManager(
-            connection as Connection.UdpConnection,
+            connection,
             converterFactory
         ),
     )

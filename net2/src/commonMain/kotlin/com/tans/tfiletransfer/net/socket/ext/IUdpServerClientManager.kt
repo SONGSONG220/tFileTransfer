@@ -1,6 +1,6 @@
 package com.tans.tfiletransfer.net.socket.ext
 
 import com.tans.tfiletransfer.net.socket.ext.client.IUdpClientManager
-import com.tans.tfiletransfer.net.socket.ext.server.IServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.IUdpServerManager
 
-interface IUdpServerClientManager : IServerManager, IUdpClientManager
+interface IUdpServerClientManager : IUdpServerManager, IUdpClientManager

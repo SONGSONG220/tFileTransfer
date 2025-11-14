@@ -9,12 +9,13 @@ import io.ktor.network.sockets.aSocket
 class TcpClientTask(
     private val serverAddress: AddressWithPort,
     override val bufferPool: BufferPool = BufferPool(),
-    override val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
-) : BaseTcpClientTask() {
+    readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
+) : BaseTcpClientTask(readWriteIdleLimitInMillis) {
 
     override val tag: String = TAG
 
     override suspend fun onStartTask() {
+        super.onStartTask()
         try {
             val socket = aSocket(selector)
                 .tcp()
@@ -31,8 +32,8 @@ class TcpClientTask(
                 success = {
                     NetLog.d(TAG, "Connect to server $serverAddress success.")
                     this.socket = socket
-                    readSocketData(socket)
-                    waitingWriteSocketData(socket)
+                    startRead(socket)
+                    startWrite(socket)
                 }
             )
         } catch (e: Throwable) {

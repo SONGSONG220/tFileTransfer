@@ -2,11 +2,10 @@ package com.tans.tfiletransfer.net.socket.udp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.IConnectionTask
+import com.tans.tfiletransfer.net.socket.BaseConnectionTask
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
-import com.tans.tfiletransfer.net.socket.SocketRuntimeException
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ASocket
@@ -16,31 +15,17 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.readAvailable
 import io.ktor.utils.io.core.writeFully
-import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.io.Buffer
 import kotlinx.io.InternalIoApi
-import kotlin.time.TimeSource
 
 class UdpTask(
     val connectionType: UdpConnectionType,
     override val bufferPool: BufferPool = BufferPool(),
-    val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
-) : IConnectionTask {
-
-    private val checkReadWriteLimit: Boolean = readWriteIdleLimitInMillis in 1 until readWriteIdleLimitInMillis
-
-    override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
-    override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    override val stateUpdateMutex: Mutex = Mutex()
+    readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
+) : BaseConnectionTask(readWriteIdleLimitInMillis) {
 
     private val selector = SelectorManager(Dispatchers.IO)
 
@@ -50,9 +35,10 @@ class UdpTask(
 
     private var socket: ASocket? = null
 
-    private val readWriteTimeMark = atomic<TimeSource.Monotonic.ValueTimeMark?>(null)
+    override val tag: String = TAG
 
     override suspend fun onStartTask() {
+        super.onStartTask()
         try {
             val socket = aSocket(selector)
                 .udp()
@@ -62,7 +48,7 @@ class UdpTask(
                 }
                 .let {
                     when (connectionType) {
-                        is UdpConnectionType.Bind -> it.bind(connectionType.localAddress.address, connectionType.localAddress.port)
+                        is UdpConnectionType.Bind -> it.bind(InetSocketAddress(connectionType.localAddress.address, connectionType.localAddress.port))
                         is UdpConnectionType.Connect -> it.connect(InetSocketAddress(connectionType.remoteAddress.address, connectionType.remoteAddress.port))
                     }
                 }
@@ -75,25 +61,8 @@ class UdpTask(
                 success = {
                     NetLog.d(TAG, "Udp connect success: $connectionType")
                     this.socket = socket
-                    if (checkReadWriteLimit) {
-                        TimeSource.Monotonic.markNow()
-                        coroutineScope.launch {
-                            try {
-                                while(true) {
-                                    delay(readWriteIdleLimitInMillis)
-                                    val mark = readWriteTimeMark.value
-                                    if (mark == null || mark.elapsedNow().inWholeMilliseconds > readWriteIdleLimitInMillis) {
-                                        error(SocketRuntimeException("Read/Write idle timeout: ${readWriteIdleLimitInMillis}ms"))
-                                        break
-                                    }
-                                }
-                            } catch (_: Throwable) {
-
-                            }
-                        }
-                    }
-                    readSocketData(socket)
-                    waitingWriteSocketData(socket)
+                    startRead(socket)
+                    startWrite(socket)
                 }
             )
 
@@ -137,7 +106,7 @@ class UdpTask(
     }
 
     @OptIn(InternalIoApi::class)
-    private fun readSocketData(socket: DatagramReadWriteChannel) {
+    private fun startRead(socket: DatagramReadWriteChannel) {
         coroutineScope.launch {
             try {
                 val readChannel = socket.incoming
@@ -156,7 +125,6 @@ class UdpTask(
                     val data = bufferPool.get(dataLen)
                     data.contentSize = dataLen
                     pkt.readAvailable(buffer = data.array, offset = 0, length = dataLen)
-                    readWriteTimeMark.getAndSet(TimeSource.Monotonic.markNow())
                     pktReadChannel.send(
                         PackageDataWithAddress(
                             pkt = PackageData(
@@ -167,6 +135,7 @@ class UdpTask(
                             address = remoteAddress
                         )
                     )
+                    resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Read chanel error: ${e.message}", e)
@@ -175,19 +144,19 @@ class UdpTask(
         }
     }
 
-    private fun waitingWriteSocketData(socket: DatagramReadWriteChannel) {
+    private fun startWrite(socket: DatagramReadWriteChannel) {
         coroutineScope.launch {
             try {
                 val writeChannel = socket.outgoing
                 for (toWrite in pktWriteChannel) {
-                    val ktBuffer = Buffer()
+                    val ktBuffer = kotlinx.io.Buffer()
                     // ktBuffer.writeInt(toWrite.pkt.data.contentSize + 4 + 8)
                     ktBuffer.writeInt(toWrite.pkt.type)
                     ktBuffer.writeLong(toWrite.pkt.messageId)
                     ktBuffer.writeFully(toWrite.pkt.data.array, 0, toWrite.pkt.data.contentSize)
                     writeChannel.send(Datagram(ktBuffer, InetSocketAddress(toWrite.address.address, toWrite.address.port)))
                     bufferPool.put(toWrite.pkt.data)
-                    readWriteTimeMark.getAndSet(TimeSource.Monotonic.markNow())
+                    resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Read channel error: ${e.message}", e)
@@ -207,7 +176,7 @@ class UdpTask(
     companion object {
         private const val TAG = "UdpTask"
 
-        sealed class UdpConnectionType() {
+        sealed class UdpConnectionType {
             class Bind(val localAddress: AddressWithPort) : UdpConnectionType() {
                 override fun toString(): String {
                     return "Bind(${localAddress.address}:${localAddress.port})"

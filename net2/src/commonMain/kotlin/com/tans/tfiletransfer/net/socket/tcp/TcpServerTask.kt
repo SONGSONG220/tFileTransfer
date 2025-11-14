@@ -99,15 +99,15 @@ class TcpServerTask(
     }
 
     inner class ClientTask(
-        private val clientSocket: Socket,
-        override val readWriteIdleLimitInMillis: Long = this@TcpServerTask.readWriteIdleLimitInMillis
-    ) : BaseTcpClientTask() {
+        private val clientSocket: Socket
+    ) : BaseTcpClientTask(this@TcpServerTask.readWriteIdleLimitInMillis) {
 
         override val bufferPool: BufferPool = this@TcpServerTask.bufferPool
 
         override val tag: String = CLIENT_TAG
 
         override suspend fun onStartTask() {
+            super.onStartTask()
             updateStateExpect(
                 expect = ConnectionTaskState.Connecting,
                 update = ConnectionTaskState.Connected,
@@ -116,8 +116,8 @@ class TcpServerTask(
                 }
             ) {
                 this.socket = clientSocket
-                readSocketData(clientSocket)
-                waitingWriteSocketData(clientSocket)
+                startRead(clientSocket)
+                startWrite(clientSocket)
             }
         }
     }

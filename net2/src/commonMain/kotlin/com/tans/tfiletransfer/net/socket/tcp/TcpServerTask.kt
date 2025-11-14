@@ -15,8 +15,10 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class TcpServerTask(
     private val bindAddress: AddressWithPort,
@@ -32,6 +34,7 @@ class TcpServerTask(
 
     private val clientTaskChannel: Channel<ClientTask> = Channel(10)
     private val clientTasks = mutableListOf<ClientTask>()
+    private val clientTasksMutex: Mutex = Mutex()
 
     override suspend fun onStartTask() {
         try {
@@ -69,17 +72,19 @@ class TcpServerTask(
         release()
     }
 
-    private fun release() {
+    private suspend fun release() {
         runCatching {
             serverSocket?.close()
         }
         serverSocket = null
         selectorManager.close()
         clientTaskChannel.close()
-        for (t in this.clientTasks) {
-            t.stopTask()
+        clientTasksMutex.withLock {
+            for (t in clientTasks) {
+                t.stopTask()
+            }
+            clientTasks.clear()
         }
-        clientTasks.clear()
     }
 
     private fun waitingClients(serverSocket: ServerSocket) {
@@ -90,8 +95,19 @@ class TcpServerTask(
                     NetLog.d(TAG, "Coming new client: ${client.remoteAddress}")
                     val t = ClientTask(client)
                     t.startTask()
-                    clientTasks.add(t)
+                    clientTasksMutex.withLock {
+                        clientTasks.add(t)
+                    }
                     clientTaskChannel.send(t)
+                    coroutineScope.launch {
+                        try {
+                            t.state().first { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }
+                            clientTasksMutex.withLock {
+                                clientTasks.remove(t)
+                            }
+                        } catch (_: Throwable) {
+                        }
+                    }
                 }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Waiting socket error: ${e.message}", e)

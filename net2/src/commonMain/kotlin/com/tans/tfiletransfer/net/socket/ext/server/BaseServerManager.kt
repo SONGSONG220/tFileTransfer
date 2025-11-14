@@ -16,6 +16,28 @@ internal abstract class BaseServerManager() : IServerManager {
     private val servers = mutableListOf<IServer<*, *>>()
     private val messageIdLock = Mutex()
     private val handledMessageId = mutableSetOf<Long>()
+    private val messageIdRing = LongArray(MAX_TRACKED_MESSAGE_IDS)
+    private var messageIdRingCount = 0
+    private var messageIdRingStart = 0
+
+    private suspend fun trackMessageId(id: Long): Boolean {
+        return messageIdLock.withLock {
+            val added = handledMessageId.add(id)
+            if (added) {
+                if (messageIdRingCount < MAX_TRACKED_MESSAGE_IDS) {
+                    val idx = (messageIdRingStart + messageIdRingCount) % MAX_TRACKED_MESSAGE_IDS
+                    messageIdRing[idx] = id
+                    messageIdRingCount++
+                } else {
+                    val oldest = messageIdRing[messageIdRingStart]
+                    handledMessageId.remove(oldest)
+                    messageIdRing[messageIdRingStart] = id
+                    messageIdRingStart = (messageIdRingStart + 1) % MAX_TRACKED_MESSAGE_IDS
+                }
+            }
+            added
+        }
+    }
 
     protected fun onRequest(
         localAddress: AddressWithPort,
@@ -28,9 +50,7 @@ internal abstract class BaseServerManager() : IServerManager {
                     servers.find { it.requestType == pkt.type }
                 }
                 if (server != null) {
-                    val isNew = messageIdLock.withLock {
-                        handledMessageId.add(pkt.messageId)
-                    }
+                    val isNew = trackMessageId(pkt.messageId)
                     server.dispatchRequest(
                         localAddress = localAddress,
                         remoteAddress = remoteAddress,
@@ -70,5 +90,9 @@ internal abstract class BaseServerManager() : IServerManager {
                 servers.clear()
             }
         }
+    }
+
+    companion object {
+        private const val MAX_TRACKED_MESSAGE_IDS = 4096
     }
 }

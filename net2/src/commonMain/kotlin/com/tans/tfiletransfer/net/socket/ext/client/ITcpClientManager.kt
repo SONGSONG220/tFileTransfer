@@ -10,17 +10,17 @@ interface ITcpClientManager : IConnectionManager {
     override val connectionTask: ITcpClientTask
 
     suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         retryTimes: Int = 2,
         retryTimeoutInMillis: Long = 1000L,
     ) : Response
 
-
     suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>
     )
@@ -28,15 +28,17 @@ interface ITcpClientManager : IConnectionManager {
 
 
 suspend inline fun <reified Request : Any, reified Response : Any> ITcpClientManager.requestSimplify(
-    type: Int,
+    requestType: Int,
     request: Request,
+    responseType: Int,
     retryTimes: Int = DEFAULT_RETRY_TIMES,
     retryTimeout: Long = DEFAULT_RETRY_TIMEOUT,
 ): Response {
     return request(
-        type = type,
+        requestType = requestType,
         request = request,
         requestClass = Request::class,
+        responseType = responseType,
         responseClass = Response::class,
         retryTimes = retryTimes,
         retryTimeoutInMillis = retryTimeout,
@@ -44,11 +46,11 @@ suspend inline fun <reified Request : Any, reified Response : Any> ITcpClientMan
 }
 
 suspend inline fun <reified Request : Any> ITcpClientManager.requestSimplify(
-    type: Int,
+    requestType: Int,
     request: Request,
 ) {
     request(
-        type = type,
+        requestType = requestType,
         request = request,
         requestClass = Request::class,
     )

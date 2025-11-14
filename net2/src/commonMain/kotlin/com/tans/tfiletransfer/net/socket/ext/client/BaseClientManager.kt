@@ -76,11 +76,12 @@ internal abstract class BaseClientManager(
     }
 
     inner class Task<Request : Any, Response : Any>(
-        private val type: Int,
+        private val requestType: Int,
         private val messageId: Long,
         private val udpTargetAddress: AddressWithPort?,
         private val request: Request,
         private val requestClass: KClass<Request>,
+        private val responseType: Int,
         private val responseClass: KClass<Response>,
         private val retryTimes: Int,
         private val retryTimeoutInMillis: Long,
@@ -96,7 +97,7 @@ internal abstract class BaseClientManager(
         fun onResponseData(
             responsePkt: PackageData
         ) : Boolean {
-            return if (responsePkt.messageId == this.messageId) { // 是当前的任务的回复消息
+            return if (responsePkt.type == responseType && responsePkt.messageId == this.messageId) { // 是当前的任务的回复消息
                 connectionTask.coroutineScope.launch {
                     try {
                         // 移除超时信息
@@ -116,7 +117,7 @@ internal abstract class BaseClientManager(
                                 callback.resume(response)
                             }
                         } else {
-                            val errorMsg = "Didn't find converter for: $type, $responseClass"
+                            val errorMsg = "Didn't find converter for: $requestType, $responseClass"
                             handleError(errorMsg)
                         }
                     } catch (e: Throwable) {
@@ -141,15 +142,15 @@ internal abstract class BaseClientManager(
                         waitingResponseTasks.add(this@Task)
                     }
                     val requestConverter = converterFactory.findPackageConverter(
-                        type = type,
+                        type = requestType,
                         dataTypeClass = requestClass
                     )
                     if (requestConverter == null) {
-                        val errorMsg = "Didn't find converter for: $type, $requestClass"
+                        val errorMsg = "Didn't find converter for: $requestType, $requestClass"
                         handleError(errorMsg)
                     } else {
                         val requestPkt = requestConverter.convert(
-                            type = type,
+                            type = requestType,
                             messageId = messageId,
                             dataTypeClass = requestClass,
                             data = request,
@@ -164,13 +165,13 @@ internal abstract class BaseClientManager(
                             }
                         }
                         if (!isSendSuccess) {
-                            val errorMsg = "Request $type fail, connection task not active."
+                            val errorMsg = "Request $requestType fail, connection task not active."
                             handleError(errorMsg)
                         } else {
                             val timeoutTask = connectionTask.coroutineScope.launch {
                                 try {
                                     delay(retryTimeoutInMillis)
-                                    handleError("Waiting server response timeout: type=${type}")
+                                    handleError("Waiting server response timeout: type=${requestType}")
                                 } catch (_: Throwable) {
                                 }
                             }
@@ -187,7 +188,7 @@ internal abstract class BaseClientManager(
         // 发送失败，处理异常
         private fun handleError(e: String) {
             connectionTask.coroutineScope.launch {
-                NetLog.e(tag, "Send request error: msgId=$messageId, cmdType=$type, error=$e")
+                NetLog.e(tag, "Send request error: msgId=$messageId, cmdType=$requestType, error=$e")
                 // 从等待队列中移除当前任务
                 waitingResponseTasksLock.withLock {
                     waitingResponseTasks.remove(this@Task)
@@ -197,10 +198,11 @@ internal abstract class BaseClientManager(
                     if (retryTimes > 0) {
                         NetLog.e(tag, "Retry request")
                         Task(
-                            type = type,
+                            requestType = requestType,
                             messageId = messageId,
                             request = request,
                             requestClass = requestClass,
+                            responseType = responseType,
                             responseClass = responseClass,
                             callback = callback,
                             retryTimes = retryTimes - 1,

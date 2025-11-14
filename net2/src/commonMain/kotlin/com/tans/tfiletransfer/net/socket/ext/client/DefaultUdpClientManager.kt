@@ -18,20 +18,22 @@ internal class DefaultUdpClientManager(
     override val connectionTask: IUdpTask = connection.connectionTask
 
     override suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         targetAddress: AddressWithPort,
         retryTimes: Int,
         retryTimeoutInMillis: Long
     ): Response = suspendCancellableCoroutine { cont ->
         Task(
-            type = type,
+            requestType = requestType,
             messageId = generateMessageId(),
             udpTargetAddress = targetAddress,
             request = request,
             requestClass = requestClass,
+            responseType = responseType,
             responseClass = responseClass,
             retryTimes = retryTimes,
             retryTimeoutInMillis = retryTimeoutInMillis,
@@ -40,20 +42,20 @@ internal class DefaultUdpClientManager(
     }
 
     override suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
         targetAddress: AddressWithPort
     ) {
         val converter = converterFactory.findPackageConverter(
-            type = type,
+            type = requestType,
             dataTypeClass = requestClass
         )
         if (converter == null) {
-            throw SocketRuntimeException("Don't find converter for $type")
+            throw SocketRuntimeException("Don't find converter for $requestType")
         }
         val pkt = converter.convert(
-            type = type,
+            type = requestType,
             messageId = generateMessageId(),
             data = request,
             dataTypeClass = requestClass,
@@ -66,7 +68,7 @@ internal class DefaultUdpClientManager(
             )
         )
         if (!ret) {
-            throw SocketRuntimeException("Request $type fail, connection task not active.")
+            throw SocketRuntimeException("Request $requestType fail, connection task not active.")
         }
     }
 

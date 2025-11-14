@@ -23,7 +23,7 @@ object UdpClientTest {
         val clientManager = udpClient.defaultClientManager().defaultServerManager()
         delay(200)
         udpClient.startTask()
-        val serverReply = clientManager.requestSimplify<String, String>(type = 0, request = "Hello, Server", targetAddress = targetAddress)
+        val serverReply = clientManager.requestSimplify<String, String>(requestType = 0, responseType = 1, request = "Hello, Server", targetAddress = targetAddress)
         println("Receive server msg: $serverReply")
         udpClient.state().filter { it is ConnectionTaskState.Error || it is ConnectionTaskState.Closed }.first()
     }

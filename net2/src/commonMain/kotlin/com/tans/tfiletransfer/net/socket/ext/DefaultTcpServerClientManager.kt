@@ -31,17 +31,19 @@ internal class DefaultTcpServerClientManager(
     }
 
     override suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         retryTimes: Int,
         retryTimeoutInMillis: Long
     ): Response {
         return clientManager.request(
-            type = type,
+            requestType = requestType,
             request = request,
             requestClass = requestClass,
+            responseType = responseType,
             responseClass = responseClass,
             retryTimes = retryTimes,
             retryTimeoutInMillis = retryTimeoutInMillis,
@@ -49,12 +51,12 @@ internal class DefaultTcpServerClientManager(
     }
 
     override suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>
     ) {
         return clientManager.request(
-            type = type,
+            requestType = requestType,
             request = request,
             requestClass = requestClass
         )

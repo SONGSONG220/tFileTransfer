@@ -7,8 +7,8 @@ import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.SocketRuntimeException
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
-import com.tans.tfiletransfer.net.socket.tcp.BaseTcpClientTask
-import com.tans.tfiletransfer.net.socket.udp.UdpTask
+import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
+import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlin.reflect.KClass
 
 private const val TAG = "IServer"
@@ -59,7 +59,7 @@ interface IServer<Request : Any, Response : Any> {
                         bufferPool = connectionTask.bufferPool
                     )
                     // 发送 response 数据
-                    if (connectionTask is UdpTask) {
+                    if (connectionTask is IUdpTask) {
                         val ret = connectionTask.writePktData(
                             pktDataWithAddress = PackageDataWithAddress(
                                 pkt = responsePkt,
@@ -72,7 +72,7 @@ interface IServer<Request : Any, Response : Any> {
                                 "Send udp replay fail, requestType=$requestType, responseType=$responseType"
                             )
                         }
-                    } else if (connectionTask is BaseTcpClientTask) {
+                    } else if (connectionTask is ITcpClientTask) {
                         val ret = connectionTask.writePktData(responsePkt)
                         if (!ret) {
                             NetLog.e(
@@ -80,6 +80,8 @@ interface IServer<Request : Any, Response : Any> {
                                 "Send tcp replay fail, requestType=$requestType, responseType=$responseType"
                             )
                         }
+                    } else {
+                        NetLog.e(TAG, "Unknown connection task type, connectionTask=$connectionTask, can't replay.")
                     }
                 }
 

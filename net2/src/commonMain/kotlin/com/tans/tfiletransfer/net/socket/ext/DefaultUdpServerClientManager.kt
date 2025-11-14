@@ -32,18 +32,20 @@ internal class DefaultUdpServerClientManager(
     }
 
     override suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         targetAddress: AddressWithPort,
         retryTimes: Int,
         retryTimeoutInMillis: Long,
     ): Response {
         return clientManager.request(
-            type = type,
+            requestType = requestType,
             request = request,
             requestClass = requestClass,
+            responseType = responseType,
             responseClass = responseClass,
             targetAddress = targetAddress,
             retryTimes = retryTimes,
@@ -52,13 +54,13 @@ internal class DefaultUdpServerClientManager(
     }
 
     override suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
         targetAddress: AddressWithPort
     ) {
         return clientManager.request(
-            type = type,
+            requestType = requestType,
             request = request,
             requestClass = requestClass,
             targetAddress = targetAddress,

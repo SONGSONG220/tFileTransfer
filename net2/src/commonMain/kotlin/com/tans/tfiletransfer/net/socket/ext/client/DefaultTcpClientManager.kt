@@ -16,19 +16,21 @@ internal class DefaultTcpClientManager(
     override val connectionTask: ITcpClientTask = connection.connectionTask
 
     override suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         retryTimes: Int,
         retryTimeoutInMillis: Long
     ): Response = suspendCancellableCoroutine { cont ->
         Task(
-            type = type,
+            requestType = requestType,
             messageId = generateMessageId(),
             udpTargetAddress = null,
             request = request,
             requestClass = requestClass,
+            responseType = responseType,
             responseClass = responseClass,
             retryTimes = retryTimes,
             retryTimeoutInMillis = retryTimeoutInMillis,
@@ -37,19 +39,19 @@ internal class DefaultTcpClientManager(
     }
 
     override suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>
     ) {
         val converter = converterFactory.findPackageConverter(
-            type = type,
+            type = requestType,
             dataTypeClass = requestClass
         )
         if (converter == null) {
-            throw SocketRuntimeException("Don't find converter for $type")
+            throw SocketRuntimeException("Don't find converter for $requestType")
         }
         val pkt = converter.convert(
-            type = type,
+            type = requestType,
             messageId = generateMessageId(),
             data = request,
             dataTypeClass = requestClass,
@@ -57,7 +59,7 @@ internal class DefaultTcpClientManager(
         )
         val ret = connectionTask.writePktData(pkt)
         if (!ret) {
-            throw SocketRuntimeException("Request $type fail, connection task not active.")
+            throw SocketRuntimeException("Request $requestType fail, connection task not active.")
         }
     }
 

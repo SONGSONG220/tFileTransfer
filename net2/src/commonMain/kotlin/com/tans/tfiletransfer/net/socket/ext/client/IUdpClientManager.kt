@@ -11,9 +11,10 @@ interface IUdpClientManager : IConnectionManager {
     override val connectionTask: IUdpTask
 
     suspend fun <Request : Any, Response : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
+        responseType: Int,
         responseClass: KClass<Response>,
         targetAddress: AddressWithPort,
         retryTimes: Int = 2,
@@ -21,7 +22,7 @@ interface IUdpClientManager : IConnectionManager {
     ) : Response
 
     suspend fun <Request : Any> request(
-        type: Int,
+        requestType: Int,
         request: Request,
         requestClass: KClass<Request>,
         targetAddress: AddressWithPort,
@@ -29,16 +30,18 @@ interface IUdpClientManager : IConnectionManager {
 }
 
 suspend inline fun <reified Request : Any, reified Response : Any> IUdpClientManager.requestSimplify(
-    type: Int,
+    requestType: Int,
     request: Request,
+    responseType: Int,
     targetAddress: AddressWithPort,
     retryTimes: Int = DEFAULT_RETRY_TIMES,
     retryTimeout: Long = DEFAULT_RETRY_TIMEOUT,
 ): Response {
     return request(
-        type = type,
+        requestType = requestType,
         request = request,
         requestClass = Request::class,
+        responseType = responseType,
         responseClass = Response::class,
         targetAddress = targetAddress,
         retryTimes = retryTimes,
@@ -52,7 +55,7 @@ suspend inline fun <reified Request : Any> IUdpClientManager.requestSimplify(
     targetAddress: AddressWithPort,
 ) {
     request(
-        type = type,
+        requestType = type,
         request = request,
         requestClass = Request::class,
         targetAddress = targetAddress

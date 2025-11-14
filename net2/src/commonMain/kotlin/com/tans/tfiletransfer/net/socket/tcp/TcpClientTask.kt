@@ -4,7 +4,10 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.ConnectionTaskState
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.aSocket
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 
 class TcpClientTask(
     private val serverAddress: AddressWithPort,
@@ -13,11 +16,12 @@ class TcpClientTask(
 ) : BaseTcpClientTask(readWriteIdleLimitInMillis) {
 
     override val tag: String = TAG
+    override val selectorManager: SelectorManager = SelectorManager(Dispatchers.IO)
 
     override suspend fun onStartTask() {
         super.onStartTask()
         try {
-            val socket = aSocket(selector)
+            val socket = aSocket(selectorManager)
                 .tcp()
                 .configure {
                     reuseAddress = true

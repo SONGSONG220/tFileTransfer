@@ -27,7 +27,7 @@ class TcpServerTask(
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
 
-    private val selectorManager = SelectorManager()
+    private val selectorManager = SelectorManager(Dispatchers.IO)
     private var serverSocket: ServerSocket? = null
 
     private val clientTaskChannel: Channel<ClientTask> = Channel(10)
@@ -105,7 +105,7 @@ class TcpServerTask(
     ) : BaseTcpClientTask(this@TcpServerTask.readWriteIdleLimitInMillis) {
 
         override val bufferPool: BufferPool = this@TcpServerTask.bufferPool
-
+        override val selectorManager: SelectorManager? = null
         override val tag: String = CLIENT_TAG
 
         override suspend fun onStartTask() {

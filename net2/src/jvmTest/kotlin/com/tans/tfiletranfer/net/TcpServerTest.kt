@@ -34,7 +34,6 @@ object TcpServerTest {
                 ) { _, _, request, _ ->
                     println("Receive msg from client: $request")
                     "Hello, Client."
-                    null
                 }
             )
             client.state().filter { it is ConnectionTaskState.Error || it is ConnectionTaskState.Closed }.first()

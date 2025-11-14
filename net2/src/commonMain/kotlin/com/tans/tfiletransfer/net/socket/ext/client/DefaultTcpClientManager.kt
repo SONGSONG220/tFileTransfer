@@ -7,6 +7,7 @@ import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.Continuation
@@ -89,7 +90,7 @@ internal class DefaultTcpClientManager(
         override val responseClass: KClass<Response>,
         override val retryTimes: Int,
         override val retryTimeoutInMillis: Long,
-        override val callback: Continuation<Response>,
+        override val callback: CancellableContinuation<Response>,
         override val delay: Long = 0
     ) : Task<Request, Response>() {
 
@@ -116,7 +117,7 @@ internal class DefaultTcpClientManager(
     override val tag: String = TAG
 
     companion object {
-        const val TAG = "DefaultTcpClientManager"
+        private const val TAG = "DefaultTcpClientManager"
     }
 }
 

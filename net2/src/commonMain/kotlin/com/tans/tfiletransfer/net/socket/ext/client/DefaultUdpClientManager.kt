@@ -9,6 +9,7 @@ import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.udp.IUdpTask
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.Continuation
@@ -29,7 +30,7 @@ internal class DefaultUdpClientManager(
                         onResponseData(it.pkt)
                     }
             } catch (e: Throwable) {
-                NetLog.e(DefaultTcpClientManager.Companion.TAG, "Read pkt fail: ${e.message}", e)
+                NetLog.e(TAG, "Read pkt fail: ${e.message}", e)
             }
         }
     }
@@ -102,7 +103,7 @@ internal class DefaultUdpClientManager(
         override val responseClass: KClass<Response>,
         override val retryTimes: Int,
         override val retryTimeoutInMillis: Long,
-        override val callback: Continuation<Response>,
+        override val callback: CancellableContinuation<Response>,
         override val delay: Long = 0
     ) : Task<Request, Response>() {
 

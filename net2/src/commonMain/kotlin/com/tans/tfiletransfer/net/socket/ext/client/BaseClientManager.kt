@@ -5,6 +5,7 @@ import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.SocketRuntimeException
 import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,7 +56,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
         abstract val responseClass: KClass<Response>
         abstract val retryTimes: Int
         abstract val retryTimeoutInMillis: Long
-        abstract val callback: Continuation<Response>
+        abstract val callback: CancellableContinuation<Response>
         abstract val delay: Long
 
         private val taskIsDone = atomic(false)
@@ -83,7 +84,9 @@ internal abstract class BaseClientManager() : IConnectionManager {
                             )
 
                             if (taskIsDone.compareAndSet(expect = false, update = true)) {
-                                callback.resume(response)
+                                if (callback.isActive) {
+                                    callback.resume(response)
+                                }
                             }
                         } else {
                             val errorMsg = "Didn't find converter for: $requestType, $responseClass"
@@ -165,7 +168,9 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         NetLog.e(tag, "Retry request")
                         retry()
                     } else {
-                        callback.resumeWithException(SocketRuntimeException(msg = e))
+                        if (callback.isActive) {
+                            callback.resumeWithException(SocketRuntimeException(msg = e))
+                        }
                     }
                 }
             }

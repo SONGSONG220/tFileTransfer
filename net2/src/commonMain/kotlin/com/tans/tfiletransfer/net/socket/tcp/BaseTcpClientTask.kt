@@ -8,7 +8,7 @@ import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
-import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.readFully
 import io.ktor.utils.io.readInt
 import io.ktor.utils.io.readLong
 import io.ktor.utils.io.writeFully
@@ -26,7 +26,7 @@ abstract class BaseTcpClientTask(
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : BaseConnectionTask(readWriteIdleLimitInMillis),ITcpClientTask {
 
-    protected val selector = SelectorManager(Dispatchers.IO)
+    abstract val selectorManager: SelectorManager?
     protected val pktReadChannel: MutableSharedFlow<PackageData> = MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
     protected val pktWriteChannel: Channel<PackageData> = Channel(10)
     protected var socket: Socket? = null
@@ -62,7 +62,7 @@ abstract class BaseTcpClientTask(
                     val msgId = readChannel.readLong()
                     val dataLen = pktLen - 4 - 8
                     val data = bufferPool.get(dataLen)
-                    readChannel.readAvailable(buffer = data.array, offset = 0, length = dataLen)
+                    readChannel.readFully(out = data.array, start = 0, end = dataLen)
                     data.contentSize = dataLen
                     pktReadChannel.emit(
                         PackageData(
@@ -83,7 +83,7 @@ abstract class BaseTcpClientTask(
     protected fun startWrite(socket: Socket) {
         coroutineScope.launch {
             try {
-                val writeChannel = socket.openWriteChannel(true)
+                val writeChannel = socket.openWriteChannel(false)
                 for (pkt in pktWriteChannel) {
                     val pktLen = pkt.data.contentSize + 4 + 8
                     writeChannel.writeInt(pktLen)
@@ -106,7 +106,7 @@ abstract class BaseTcpClientTask(
             socket?.close()
         }
         socket = null
-        selector.close()
+        selectorManager?.close()
         pktWriteChannel.close()
     }
 }

@@ -151,7 +151,7 @@ class UdpTask(
                     resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
-                NetLog.e(TAG, "Read channel error: ${e.message}", e)
+                NetLog.e(TAG, "Write channel error: ${e.message}", e)
                 error(e)
             }
         }

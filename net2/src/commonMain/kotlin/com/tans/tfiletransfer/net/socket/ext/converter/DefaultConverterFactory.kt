@@ -112,6 +112,7 @@ open class DefaultConverterFactory : IConverterFactory {
             ): T {
                 val body = pkt.data
                 val jsonString = body.array.decodeToString(startIndex = 0, endIndex = body.contentSize)
+                bufferPool.put(body)
                 val ret: T = Json.decodeFromString(typeClass.serializer(), jsonString)
                 return ret
             }

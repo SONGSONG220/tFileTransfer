@@ -14,6 +14,7 @@ import io.ktor.network.sockets.DatagramReadWriteChannel
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.readAvailable
+import io.ktor.utils.io.core.remaining
 import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -97,7 +98,7 @@ class UdpTask(
         }
     }
 
-    @OptIn(InternalIoApi::class)
+
     private fun startRead(socket: DatagramReadWriteChannel) {
         coroutineScope.launch {
             try {
@@ -110,7 +111,7 @@ class UdpTask(
                     )
                     val pkt = datagram.packet
                     // val pktLen = pkt.readInt()
-                    val pktLen = pkt.buffer.size.toInt()
+                    val pktLen = pkt.remaining.toInt()
                     val type = pkt.readInt()
                     val msgId = pkt.readLong()
                     val dataLen = pktLen - 4 - 8

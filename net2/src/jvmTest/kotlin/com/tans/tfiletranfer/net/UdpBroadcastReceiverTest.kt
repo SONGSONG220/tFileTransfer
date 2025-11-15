@@ -7,6 +7,7 @@ import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.socket.getBroadcastAddressV4
 import com.tans.tfiletransfer.net.socket.udp.UdpTask
+import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastMsg
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -23,7 +24,7 @@ object UdpBroadcastReceiverTest {
         )
         val serverManager = task.defaultServerManager()
         serverManager.registerServer(
-            server<String, Unit>(
+            server<BroadcastMsg, Unit>(
                 requestType = 0,
                 responseType = -1,
             ) { _, remoteAddress, request, _ ->

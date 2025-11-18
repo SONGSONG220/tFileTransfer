@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 class UdpTask(
     val connectionType: UdpConnectionType,
     override val bufferPool: BufferPool = BufferPool(),
+    private val enableBroadcast: Boolean = false,
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : BaseConnectionTask(readWriteIdleLimitInMillis), IUdpTask {
 
@@ -48,11 +49,11 @@ class UdpTask(
                 .let {
                     when (connectionType) {
                         is UdpConnectionType.Bind -> it.bind(InetSocketAddress(connectionType.localAddress.address, connectionType.localAddress.port)) {
-                            broadcast = true
+                            broadcast = enableBroadcast
                             reuseAddress = true
                         }
                         is UdpConnectionType.Connect -> it.connect(InetSocketAddress(connectionType.remoteAddress.address, connectionType.remoteAddress.port)) {
-                            broadcast = true
+                            broadcast = enableBroadcast
                             reuseAddress = true
                         }
                     }

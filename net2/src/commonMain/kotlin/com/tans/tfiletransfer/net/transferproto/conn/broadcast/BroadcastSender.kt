@@ -51,7 +51,8 @@ class BroadcastSender(
         val senderTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Connect(
                 remoteAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT),
-            )
+            ),
+            enableBroadcast = true
         )
         val senderClient = senderTask.defaultClientManager()
         senderTask.startTask()

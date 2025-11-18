@@ -54,7 +54,8 @@ class BroadcastReceiver(
         val receiverTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Bind(
                 localAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT)
-            )
+            ),
+            enableBroadcast = true
         )
         receiverTask.startTask()
         receiverTask.waitTaskConnectedOrError().apply {
@@ -186,7 +187,7 @@ class BroadcastReceiver(
                     val toCheckDevices = remoteDevicesFlow.value
                     val newDevices = toCheckDevices.filter {
                         if (it.first.elapsedNow().inWholeMilliseconds > maxRemoteDevicesIdleTimeInMillis) {
-                            NetLog.d(TAG, "Remote device ${it.second.deviceName}, because of out of data.")
+                            NetLog.d(TAG, "Remove device ${it.second.deviceName}, because of out of data.")
                             removeDeviceCount ++
                             false
                         } else {

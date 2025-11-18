@@ -16,7 +16,7 @@ object UdpBroadcastReceiverTest {
         val broadcastReceiver = BroadcastReceiver(
             localDeviceName = "TestDevice_Receiver",
             localAddress = address,
-            broadcastAddress = address
+            broadcastAddress = broadcast.address
         )
         broadcastReceiver.startTask()
         coroutineScope {

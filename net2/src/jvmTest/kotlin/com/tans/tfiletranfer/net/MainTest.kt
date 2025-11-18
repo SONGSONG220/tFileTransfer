@@ -8,12 +8,12 @@ object MainTest {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-//            launch {
-//                UdpBroadcastReceiverTest.run()
-//            }
             launch {
-                UdpBroadcastSenderTest.run()
+                UdpBroadcastReceiverTest.run()
             }
+//            launch {
+//                UdpBroadcastSenderTest.run()
+//            }
         }
     }
 }

@@ -145,13 +145,15 @@ class BroadcastReceiver(
             } else {
                 it
             }
-        }.apply {
+        }.let {
             if (isNew) {
                 NetLog.d(TAG, "Find new device: name=${msg.deviceName}, address=${remoteAddress.address}")
-                this + (nowMark to RemoteDevice(
+                it + (nowMark to RemoteDevice(
                     remoteAddress = remoteAddress.address,
                     deviceName = msg.deviceName,
                 ))
+            } else {
+                it
             }
         }
         remoteDevicesFlow.value = newDevices

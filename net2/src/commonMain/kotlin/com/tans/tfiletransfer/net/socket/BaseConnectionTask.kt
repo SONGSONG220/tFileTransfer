@@ -1,5 +1,6 @@
 package com.tans.tfiletransfer.net.socket
 
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.NetLog
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +21,7 @@ abstract class BaseConnectionTask(
     private val checkIdle: Boolean = readWriteIdleLimitInMillis in 1 until Long.MAX_VALUE
 
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
+    override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val stateUpdateMutex: Mutex = Mutex()
 
     open val tag = "BaseConnectionTask"
@@ -36,7 +37,7 @@ abstract class BaseConnectionTask(
                         if (mark == null || mark.elapsedNow().inWholeMilliseconds > readWriteIdleLimitInMillis) {
                             val errorMsg = "Read/Write idle timeout: ${readWriteIdleLimitInMillis}ms"
                             NetLog.e(tag, errorMsg)
-                            error(SocketRuntimeException(errorMsg))
+                            error(SocketException(errorMsg))
                             break
                         }
                     }

@@ -1,7 +1,7 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.ext.defaultClientManager
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.server
@@ -29,7 +29,7 @@ object UdpServerTest {
             }
         )
         udpClient.startTask()
-        udpClient.state().filter { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }.first()
+        udpClient.state().filter { it is TaskState.Closed || it is TaskState.Error }.first()
     }
 
     const val BIND_PORT = 1997

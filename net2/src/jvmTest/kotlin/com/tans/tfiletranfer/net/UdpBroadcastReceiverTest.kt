@@ -1,7 +1,7 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
@@ -33,6 +33,6 @@ object UdpBroadcastReceiverTest {
             }
         )
         task.startTask()
-        task.state().filter { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }.first()
+        task.state().filter { it is TaskState.Closed || it is TaskState.Error }.first()
     }
 }

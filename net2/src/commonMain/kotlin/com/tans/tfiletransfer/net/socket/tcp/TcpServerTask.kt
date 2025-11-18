@@ -2,8 +2,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.IConnectionTask
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ServerSocket
@@ -25,7 +24,7 @@ class TcpServerTask(
     override val bufferPool: BufferPool = BufferPool(),
     val readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : ITcpServerTask {
-    override val stateFlow: StateFlow<ConnectionTaskState> = MutableStateFlow(ConnectionTaskState.Init)
+    override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
 
@@ -45,8 +44,8 @@ class TcpServerTask(
                 }
                 .bind(bindAddress.address, bindAddress.port)
             updateStateExpect(
-                expect = ConnectionTaskState.Connecting,
-                update = ConnectionTaskState.Connected,
+                expect = TaskState.Connecting,
+                update = TaskState.Connected,
                 fail = {
                     serverSocket.close()
                 },
@@ -101,7 +100,7 @@ class TcpServerTask(
                     clientTaskChannel.send(t)
                     coroutineScope.launch {
                         try {
-                            t.state().first { it is ConnectionTaskState.Closed || it is ConnectionTaskState.Error }
+                            t.state().first { it is TaskState.Closed || it is TaskState.Error }
                             clientTasksMutex.withLock {
                                 clientTasks.remove(t)
                             }
@@ -127,8 +126,8 @@ class TcpServerTask(
         override suspend fun onStartTask() {
             super.onStartTask()
             updateStateExpect(
-                expect = ConnectionTaskState.Connecting,
-                update = ConnectionTaskState.Connected,
+                expect = TaskState.Connecting,
+                update = TaskState.Connected,
                 fail = {
                     clientSocket.close()
                 }

@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.BaseConnectionTask
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
@@ -14,8 +14,6 @@ import io.ktor.utils.io.readLong
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeInt
 import io.ktor.utils.io.writeLong
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -44,7 +42,7 @@ abstract class BaseTcpClientTask(
     override fun pktReadChannel(): Flow<PackageData> = pktReadChannel
 
     override suspend fun writePktData(pkt: PackageData): Boolean {
-        return if (currentState() == ConnectionTaskState.Connected) {
+        return if (currentState() == TaskState.Connected) {
             pktWriteChannel.send(pkt)
             true
         } else {

@@ -3,7 +3,7 @@ package com.tans.tfiletransfer.net.socket.udp
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.BaseConnectionTask
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
@@ -23,7 +23,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.io.InternalIoApi
 
 class UdpTask(
     val connectionType: UdpConnectionType,
@@ -57,8 +56,8 @@ class UdpTask(
                     }
                 }
             updateStateExpect(
-                expect = ConnectionTaskState.Connecting,
-                update = ConnectionTaskState.Connected,
+                expect = TaskState.Connecting,
+                update = TaskState.Connected,
                 fail = {
                     socket.close()
                 },
@@ -90,7 +89,7 @@ class UdpTask(
     override fun pktReadChannel(): Flow<PackageDataWithAddress> = pktReadChannel
 
     override suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean {
-        return if (currentState() == ConnectionTaskState.Connected) {
+        return if (currentState() == TaskState.Connected) {
             pktWriteChannel.send(pktDataWithAddress)
             true
         } else {

@@ -1,7 +1,7 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.ext.client.defaultClientManager
 import com.tans.tfiletransfer.net.socket.ext.client.requestSimplify
 import com.tans.tfiletransfer.net.socket.ext.defaultServerManager
@@ -27,7 +27,7 @@ object TcpClientTest {
                     println("Client state: $it")
                 }
             }
-            clientTask.state().filter { it is ConnectionTaskState.Connected }.first()
+            clientTask.state().filter { it is TaskState.Connected }.first()
             val serverReply = try {
                 clientManager.requestSimplify<String, String>(
                     requestType = 0,

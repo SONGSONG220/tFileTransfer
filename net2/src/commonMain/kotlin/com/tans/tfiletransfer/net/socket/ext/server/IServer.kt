@@ -3,7 +3,7 @@ package com.tans.tfiletransfer.net.socket.ext.server
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.SocketRuntimeException
+import com.tans.tfiletransfer.net.socket.SocketException
 import kotlin.reflect.KClass
 
 private const val TAG = "IServer"
@@ -64,7 +64,7 @@ interface IServer<Request : Any, Response : Any> {
 
             }
         } else {
-            throw SocketRuntimeException("Didn't find request type converter requestType=$requestType, requestTypeClazz=$requestClass")
+            throw SocketException("Didn't find request type converter requestType=$requestType, requestTypeClazz=$requestClass")
         }
     }
 

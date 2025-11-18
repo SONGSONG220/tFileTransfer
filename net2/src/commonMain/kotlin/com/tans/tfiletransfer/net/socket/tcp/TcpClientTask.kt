@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.aSocket
@@ -28,8 +28,8 @@ class TcpClientTask(
                 }
                 .connect(serverAddress.address, serverAddress.port)
             updateStateExpect(
-                expect = ConnectionTaskState.Connecting,
-                update = ConnectionTaskState.Connected,
+                expect = TaskState.Connecting,
+                update = TaskState.Connected,
                 fail = {
                     socket.close()
                 },

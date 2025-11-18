@@ -4,7 +4,7 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
-import com.tans.tfiletransfer.net.socket.SocketRuntimeException
+import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
@@ -12,7 +12,6 @@ import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.Continuation
 import kotlin.reflect.KClass
 
 internal class DefaultUdpClientManager(
@@ -70,7 +69,7 @@ internal class DefaultUdpClientManager(
             dataTypeClass = requestClass
         )
         if (converter == null) {
-            throw SocketRuntimeException("Don't find converter for $requestType")
+            throw SocketException("Don't find converter for $requestType")
         }
         val pkt = converter.convert(
             type = requestType,
@@ -86,7 +85,7 @@ internal class DefaultUdpClientManager(
             )
         )
         if (!ret) {
-            throw SocketRuntimeException("Request $requestType fail, connection task not active.")
+            throw SocketException("Request $requestType fail, connection task not active.")
         }
     }
 

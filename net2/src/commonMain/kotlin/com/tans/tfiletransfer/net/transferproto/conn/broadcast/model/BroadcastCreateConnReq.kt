@@ -4,7 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BroadcastTransferFileRsp(
+data class BroadcastCreateConnReq(
+    @SerialName("version")
+    val version: Int,
     @SerialName("deviceName")
     val deviceName: String
 )

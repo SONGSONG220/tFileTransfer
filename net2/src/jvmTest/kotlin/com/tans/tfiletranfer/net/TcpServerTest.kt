@@ -1,7 +1,7 @@
 package com.tans.tfiletranfer.net
 
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ConnectionTaskState
+import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.ext.defaultClientManager
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
 import com.tans.tfiletransfer.net.socket.ext.server.server
@@ -36,7 +36,7 @@ object TcpServerTest {
                     "Hello, Client."
                 }
             )
-            client.state().filter { it is ConnectionTaskState.Error || it is ConnectionTaskState.Closed }.first()
+            client.state().filter { it is TaskState.Error || it is TaskState.Closed }.first()
             serverTask.stopTask()
             stateJob.cancel()
             println("Connection closed.")

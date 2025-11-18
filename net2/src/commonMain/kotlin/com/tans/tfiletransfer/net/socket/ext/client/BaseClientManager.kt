@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.socket.ext.client
 
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.PackageData
-import com.tans.tfiletransfer.net.socket.SocketRuntimeException
+import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellableContinuation
@@ -11,7 +11,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KClass
@@ -169,7 +168,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         retry()
                     } else {
                         if (callback.isActive) {
-                            callback.resumeWithException(SocketRuntimeException(msg = e))
+                            callback.resumeWithException(SocketException(msg = e))
                         }
                     }
                 }

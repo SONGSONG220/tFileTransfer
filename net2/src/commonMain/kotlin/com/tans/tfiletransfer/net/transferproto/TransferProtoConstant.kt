@@ -12,8 +12,8 @@ object TransferProtoConstant {
      * Broadcast Connection
      */
     const val BROADCAST_SCANNER_PORT = 1997
-    const val BROADCAST_TRANSFER_SERVER_PORT = 1998
-    const val BROADCAST_TRANSFER_CLIENT_PORT = 1999
+    const val BROADCAST_CREATE_CONN_SERVER_PORT = 1998
+    const val BROADCAST_CREATE_CONN_CLIENT_PORT = 1999
 
     /**
      * File Explore

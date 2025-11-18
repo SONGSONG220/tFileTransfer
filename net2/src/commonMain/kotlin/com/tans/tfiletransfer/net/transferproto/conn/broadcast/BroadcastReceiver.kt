@@ -56,14 +56,6 @@ class BroadcastReceiver(
                 localAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT)
             )
         )
-        receiverTask.defaultServerManager()
-            .registerServer(server<BroadcastMsg, Unit>(
-                requestType = BroadcastDataType.BroadcastMsg.type,
-                responseType = -1
-            ) { _, remoteAddress, r, isNewRequest ->
-                receiveBroadcastMsg(remoteAddress, r)
-                null
-            })
         receiverTask.startTask()
         receiverTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
@@ -77,7 +69,6 @@ class BroadcastReceiver(
                 localAddress = AddressWithPort(localAddress, TransferProtoConstant.BROADCAST_CREATE_CONN_CLIENT_PORT)
             )
         )
-        val createConnectionTaskClient = createConnectionTask.defaultClientManager()
         createConnectionTask.startTask()
         createConnectionTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
@@ -99,7 +90,7 @@ class BroadcastReceiver(
             NetLog.d(TAG, "Broadcast receiver task and create connection task connected.")
             this.receiverTask = receiverTask
             this.createConnectionTask = createConnectionTask
-            this.createConnectionTaskClient = createConnectionTaskClient
+            this.createConnectionTaskClient = createConnectionTask.defaultClientManager()
             onConnectionCreated(receiverTask = receiverTask, createConnectionTask = createConnectionTask)
         }
     }
@@ -206,6 +197,14 @@ class BroadcastReceiver(
                 }
             }
         }
+        receiverTask.defaultServerManager()
+            .registerServer(server<BroadcastMsg, Unit>(
+                requestType = BroadcastDataType.BroadcastMsg.type,
+                responseType = -1
+            ) { _, remoteAddress, r, isNewRequest ->
+                receiveBroadcastMsg(remoteAddress, r)
+                null
+            })
     }
 
     private fun release() {

@@ -50,12 +50,12 @@ suspend inline fun <reified Request : Any, reified Response : Any> IUdpClientMan
 }
 
 suspend inline fun <reified Request : Any> IUdpClientManager.requestSimplify(
-    type: Int,
+    requestType: Int,
     request: Request,
     targetAddress: AddressWithPort,
 ) {
     request(
-        requestType = type,
+        requestType = requestType,
         request = request,
         requestClass = Request::class,
         targetAddress = targetAddress

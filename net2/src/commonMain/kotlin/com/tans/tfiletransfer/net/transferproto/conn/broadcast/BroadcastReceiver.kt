@@ -60,7 +60,7 @@ class BroadcastReceiver(
         receiverTask.startTask()
         receiverTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start broadcast receiver task. Cause: ${this.throwable?.message}", throwable)
+                NetLog.e(TAG, "Failed to start broadcast receiver task. Cause: ${this.throwable?.message}", this.throwable)
                 error(this.throwable)
                 return
             }
@@ -73,7 +73,7 @@ class BroadcastReceiver(
         createConnectionTask.startTask()
         createConnectionTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", throwable)
+                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable)
                 receiverTask.stopTask()
                 error(this.throwable)
                 return
@@ -216,6 +216,7 @@ class BroadcastReceiver(
         createConnectionTask?.stopTask()
         createConnectionTask = null
         createConnectionTaskClient = null
+        remoteDevicesFlow.value = emptyList()
         coroutineScope.cancel()
     }
 

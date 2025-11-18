@@ -71,7 +71,7 @@ class BroadcastSender(
         createConnectionTask.startTask()
         createConnectionTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", throwable)
+                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable)
                 senderTask.stopTask()
                 error(this.throwable)
                 return

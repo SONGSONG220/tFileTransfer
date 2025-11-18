@@ -60,8 +60,7 @@ class BroadcastReceiver(
         receiverTask.startTask()
         receiverTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start broadcast receiver task. Cause: ${this.throwable?.message}", this.throwable)
-                error(this.throwable)
+                error(TransferException("Failed to start broadcast receiver task. Cause: ${this.throwable?.message}", this.throwable))
                 return
             }
         }
@@ -73,9 +72,8 @@ class BroadcastReceiver(
         createConnectionTask.startTask()
         createConnectionTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable)
                 receiverTask.stopTask()
-                error(this.throwable)
+                error(TransferException("Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable))
                 return
             }
         }
@@ -102,6 +100,7 @@ class BroadcastReceiver(
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        NetLog.e(TAG, throwable?.message ?: "Unknown error", throwable)
         release()
     }
 
@@ -166,17 +165,13 @@ class BroadcastReceiver(
         coroutineScope.launch {
             runCatching {
                 receiverTask.waitTaskFinished()
-                val msg = "Receiver task finished."
-                NetLog.e(TAG, msg)
-                error(TransferException(msg))
+                error(TransferException("Receiver task finished."))
             }
         }
         coroutineScope.launch {
             runCatching {
                 createConnectionTask.waitTaskFinished()
-                val msg = "Create connection task finished."
-                NetLog.e(TAG, msg)
-                error(TransferException(msg))
+                error(TransferException("Create connection task finished."))
             }
         }
         coroutineScope.launch { // Remove out of data devices

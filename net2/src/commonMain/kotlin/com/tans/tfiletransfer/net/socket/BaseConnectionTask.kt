@@ -1,7 +1,6 @@
 package com.tans.tfiletransfer.net.socket
 
 import com.tans.tfiletransfer.net.TaskState
-import com.tans.tfiletransfer.net.NetLog
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,9 +34,7 @@ abstract class BaseConnectionTask(
                         delay(readWriteIdleLimitInMillis)
                         val mark = readWriteTimeMark.value
                         if (mark == null || mark.elapsedNow().inWholeMilliseconds > readWriteIdleLimitInMillis) {
-                            val errorMsg = "Read/Write idle timeout: ${readWriteIdleLimitInMillis}ms"
-                            NetLog.e(tag, errorMsg)
-                            error(SocketException(errorMsg))
+                            error(SocketException("Read/Write idle timeout: ${readWriteIdleLimitInMillis}ms"))
                             break
                         }
                     }

@@ -58,8 +58,7 @@ class BroadcastSender(
         senderTask.startTask()
         senderTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "BroadcastSender start task error: $this")
-                error(this.throwable)
+                error(TransferException("Failed to start broadcast sender task. Cause: ${this.throwable?.message}", this.throwable))
                 return
             }
         }
@@ -71,9 +70,8 @@ class BroadcastSender(
         createConnectionTask.startTask()
         createConnectionTask.waitTaskConnectedOrError().apply {
             if (this is TaskState.Error) {
-                NetLog.e(TAG, "Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable)
                 senderTask.stopTask()
-                error(this.throwable)
+                error(TransferException("Failed to start create connection task. Cause: ${this.throwable?.message}", this.throwable))
                 return
             }
         }
@@ -100,6 +98,7 @@ class BroadcastSender(
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        NetLog.e(TAG, throwable?.message ?: "Unknown error.", throwable)
         release()
     }
 
@@ -116,24 +115,20 @@ class BroadcastSender(
         val broadcastStr = try {
             Json.encodeToString(broadcastMsg)
         } catch (e: Throwable) {
-            NetLog.e(TAG, "Failed to encode broadcast msg to string. Cause: ${e.message}", e)
+            error(TransferException("Failed to encode broadcast msg to string. Cause: ${e.message}", e))
             return
         }
 
         coroutineScope.launch {
             runCatching {
                 senderClient.connectionTask.waitTaskFinished()
-                val msg = "Sender task finished."
-                NetLog.e(TAG, msg)
-                error(TransferException(msg))
+                error(TransferException("Sender task finished."))
             }
         }
         coroutineScope.launch {
             runCatching {
                 createConnectionTask.waitTaskFinished()
-                val msg = "Create connection task finished."
-                NetLog.e(TAG, msg)
-                error(TransferException(msg))
+                error(TransferException("Create connection task finished."))
             }
         }
 

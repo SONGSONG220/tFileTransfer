@@ -6,6 +6,7 @@ import com.tans.tfiletransfer.net.socket.BaseConnectionTask
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
+import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ASocket
@@ -73,8 +74,7 @@ class UdpTask(
             )
 
         } catch (e: Throwable) {
-            NetLog.e(TAG, "Connection fail: ${e.message}", e)
-            error(e)
+            error(SocketException("Connection fail: ${e.message}", e))
         }
     }
 
@@ -84,6 +84,7 @@ class UdpTask(
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        NetLog.e(TAG, throwable?.message ?: "Unknown error", throwable)
         release()
     }
 
@@ -133,8 +134,7 @@ class UdpTask(
                     resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
-                NetLog.e(TAG, "Read chanel error: ${e.message}", e)
-                error(e)
+                error(SocketException("Read chanel error: ${e.message}", e))
             }
         }
     }
@@ -154,8 +154,7 @@ class UdpTask(
                     resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
-                NetLog.e(TAG, "Write channel error: ${e.message}", e)
-                error(e)
+                error(SocketException("Write channel error: ${e.message}", e))
             }
         }
     }

@@ -3,6 +3,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.TaskState
+import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.aSocket
@@ -40,8 +41,7 @@ class TcpClientTask(
                 }
             )
         } catch (e: Throwable) {
-            NetLog.e(TAG, "Connect to server $serverAddress fail: ${e.message}", e)
-            error(e)
+            error(SocketException("Connect to server $serverAddress fail: ${e.message}", e))
         }
 
     }

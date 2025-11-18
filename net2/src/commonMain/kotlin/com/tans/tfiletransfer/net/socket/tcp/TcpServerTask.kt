@@ -3,6 +3,7 @@ package com.tans.tfiletransfer.net.socket.tcp
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.TaskState
+import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ServerSocket
@@ -54,8 +55,7 @@ class TcpServerTask(
                     waitingClients(serverSocket)
                 })
         } catch (e: Throwable) {
-            NetLog.e(TAG, "Bind address $bindAddress fail.", e)
-            error(e)
+            error(SocketException("Bind address $bindAddress fail.", e))
         }
     }
 
@@ -67,6 +67,7 @@ class TcpServerTask(
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        NetLog.e(TAG, throwable?.message ?: "Unknown error", throwable)
         release()
     }
 
@@ -108,8 +109,7 @@ class TcpServerTask(
                     }
                 }
             } catch (e: Throwable) {
-                NetLog.e(TAG, "Waiting socket error: ${e.message}", e)
-                error(e)
+                error(SocketException("Waiting socket error: ${e.message}", e))
             }
         }
     }

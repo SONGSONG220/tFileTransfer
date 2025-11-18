@@ -4,6 +4,7 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.BaseConnectionTask
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.SocketException
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.openReadChannel
@@ -30,10 +31,12 @@ abstract class BaseTcpClientTask(
     protected var socket: Socket? = null
 
     override suspend fun onStopTask(cause: String?) {
+        NetLog.d(tag, "Task stopped: $cause")
         release()
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        NetLog.e(tag, throwable?.message ?: "Unknown error", throwable)
         release()
     }
 
@@ -72,8 +75,7 @@ abstract class BaseTcpClientTask(
                     resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
-                NetLog.e(tag, "Read chanel error: ${e.message}", e)
-                error(e)
+                error(SocketException("Read chanel error: ${e.message}", e))
             }
         }
     }
@@ -93,8 +95,7 @@ abstract class BaseTcpClientTask(
                     resetLastReadWriteTime()
                 }
             } catch (e: Throwable) {
-                NetLog.e(tag, "Write channel error: ${e.message}", e)
-                error(e)
+                error(SocketException("Write channel error: ${e.message}", e))
             }
         }
     }

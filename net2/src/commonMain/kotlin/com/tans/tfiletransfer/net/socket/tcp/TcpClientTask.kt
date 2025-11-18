@@ -23,10 +23,9 @@ class TcpClientTask(
         try {
             val socket = aSocket(selectorManager)
                 .tcp()
-                .configure {
+                .connect(serverAddress.address, serverAddress.port) {
                     reuseAddress = true
                 }
-                .connect(serverAddress.address, serverAddress.port)
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,

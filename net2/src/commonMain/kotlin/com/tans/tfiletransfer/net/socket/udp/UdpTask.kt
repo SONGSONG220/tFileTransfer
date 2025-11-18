@@ -45,14 +45,16 @@ class UdpTask(
         try {
             val socket = aSocket(selector)
                 .udp()
-                .configure {
-                    broadcast = true
-                    reuseAddress = true
-                }
                 .let {
                     when (connectionType) {
-                        is UdpConnectionType.Bind -> it.bind(InetSocketAddress(connectionType.localAddress.address, connectionType.localAddress.port))
-                        is UdpConnectionType.Connect -> it.connect(InetSocketAddress(connectionType.remoteAddress.address, connectionType.remoteAddress.port))
+                        is UdpConnectionType.Bind -> it.bind(InetSocketAddress(connectionType.localAddress.address, connectionType.localAddress.port)) {
+                            broadcast = true
+                            reuseAddress = true
+                        }
+                        is UdpConnectionType.Connect -> it.connect(InetSocketAddress(connectionType.remoteAddress.address, connectionType.remoteAddress.port)) {
+                            broadcast = true
+                            reuseAddress = true
+                        }
                     }
                 }
             updateStateExpect(

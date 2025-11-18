@@ -39,10 +39,9 @@ class TcpServerTask(
         try {
             val serverSocket = aSocket(selectorManager)
                 .tcp()
-                .configure {
+                .bind(bindAddress.address, bindAddress.port) {
                     reuseAddress = true
                 }
-                .bind(bindAddress.address, bindAddress.port)
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,

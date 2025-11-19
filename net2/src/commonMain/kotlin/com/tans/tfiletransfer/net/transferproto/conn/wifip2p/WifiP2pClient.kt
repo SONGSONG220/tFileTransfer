@@ -109,6 +109,6 @@ class WifiP2pClient(
     }
 
     companion object {
-        const val TAG = "WifiP2pClient"
+        private const val TAG = "WifiP2pClient"
     }
 }

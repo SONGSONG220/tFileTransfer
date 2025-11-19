@@ -29,8 +29,8 @@ object WifiP2pClientTest {
                         println("Client request create connection result: $result")
                     }
                     val waitCloseJob = launch {
-                        val closeReq = client.closeWifiP2pRequest().first()
-                        println("Client received close request: $closeReq")
+//                        val closeReq = client.closeWifiP2pRequest().first()
+//                        println("Client received close request: $closeReq")
                     }
                     createConnJob.join()
                     waitCloseJob.join()
@@ -41,7 +41,7 @@ object WifiP2pClientTest {
                 }
             }
             client.waitTaskFinished()
-            println("Client task finished.")
+            println("Client test finished.")
         }
     }
 }

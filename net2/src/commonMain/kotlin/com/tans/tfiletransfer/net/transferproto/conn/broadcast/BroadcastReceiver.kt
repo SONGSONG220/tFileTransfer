@@ -77,19 +77,22 @@ class BroadcastReceiver(
                 return
             }
         }
+        this.receiverTask = receiverTask
+        this.createConnectionTask = createConnectionTask
+        this.createConnectionTaskClient = createConnectionTask.defaultClientManager()
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.receiverTask = null
+                this.createConnectionTask = null
+                this.createConnectionTaskClient = null
                 receiverTask.stopTask()
                 createConnectionTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Broadcast receiver task and create connection task connected.")
-            this.receiverTask = receiverTask
-            this.createConnectionTask = createConnectionTask
-            this.createConnectionTaskClient = createConnectionTask.defaultClientManager()
             onConnectionCreated(receiverTask = receiverTask, createConnectionTask = createConnectionTask)
         }
     }

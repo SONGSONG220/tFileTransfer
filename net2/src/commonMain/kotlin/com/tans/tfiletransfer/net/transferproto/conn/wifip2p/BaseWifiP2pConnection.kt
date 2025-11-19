@@ -13,6 +13,7 @@ import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandsh
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,11 +29,11 @@ abstract class BaseWifiP2pConnection : ITask {
     abstract val tag: String
 
     private val connectionRequestFlow: MutableSharedFlow<Unit> by lazy {
-        MutableSharedFlow()
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
 
     private val closeP2pRequestFlow: MutableSharedFlow<Unit> by lazy {
-        MutableSharedFlow()
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     }
 
     protected val wifiHandshakeFlow: MutableStateFlow<WifiP2pHandshake?> by lazy {
@@ -46,7 +47,10 @@ abstract class BaseWifiP2pConnection : ITask {
         ) { _, remoteAddress, _, isNew ->
             NetLog.d(tag, "Received create connection request. RemoteAddress: $remoteAddress")
             if (isNew) {
-                connectionRequestFlow.tryEmit(Unit)
+                val isSuccess = connectionRequestFlow.tryEmit(Unit)
+                if (!isSuccess) {
+                    NetLog.e(tag, "Failed to emit connection request.")
+                }
             }
             Unit
         }
@@ -59,7 +63,10 @@ abstract class BaseWifiP2pConnection : ITask {
         ) { _, remoteAddress, _, isNew ->
             NetLog.d(tag, "Remote device $remoteAddress request to close WiFi-P2P connection.")
             if (isNew) {
-                closeP2pRequestFlow.tryEmit(Unit)
+                val isSuccess = closeP2pRequestFlow.tryEmit(Unit)
+                if (!isSuccess) {
+                    NetLog.e(tag, "Failed to emit close p2p request.")
+                }
             }
             Unit
         }

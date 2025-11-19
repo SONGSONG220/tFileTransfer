@@ -47,17 +47,19 @@ class QRCodeClient(
                 return
             }
         }
+        this.createConnTask = createConnTask
+        this.createConnClient = createConnTask.defaultClientManager()
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.createConnTask = null
+                this.createConnClient = null
                 createConnTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Task connected.")
-            this.createConnTask = createConnTask
-            this.createConnClient = createConnTask.defaultClientManager()
             onConnectionCreated(createConnTask)
         }
     }

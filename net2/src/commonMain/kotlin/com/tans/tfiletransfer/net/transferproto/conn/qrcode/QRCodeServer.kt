@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,7 @@ class QRCodeServer(private val localAddress: Address) : ITask {
     override val stateUpdateMutex: Mutex = Mutex()
     private var createConnTask: UdpTask? = null
 
-    private val connectionRequestFlow: MutableSharedFlow<RemoteDevice> = MutableSharedFlow()
+    private val connectionRequestFlow: MutableSharedFlow<RemoteDevice> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     override suspend fun onStartTask() {
         val createConnTask = UdpTask(
@@ -46,16 +47,17 @@ class QRCodeServer(private val localAddress: Address) : ITask {
                 return
             }
         }
+        this.createConnTask = createConnTask
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.createConnTask = null
                 createConnTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Task connected")
-            this.createConnTask = createConnTask
             onConnectionCreated(createConnTask)
         }
     }
@@ -87,12 +89,15 @@ class QRCodeServer(private val localAddress: Address) : ITask {
                 NetLog.d(TAG, "Received create connection request. Request: $r")
                 if (r.version == TransferProtoConstant.VERSION) {
                     if (isNew) {
-                        connectionRequestFlow.tryEmit(
+                        val isSuccess = connectionRequestFlow.tryEmit(
                             RemoteDevice(
                                 remoteAddress = remoteAddress.address,
                                 deviceName = r.deviceName
                             )
                         )
+                        if (!isSuccess) {
+                            NetLog.e(TAG, "Failed to emit connection request. Request: $r")
+                        }
                     }
                     Unit
                 } else {

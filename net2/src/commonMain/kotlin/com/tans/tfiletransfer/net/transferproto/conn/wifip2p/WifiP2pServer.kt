@@ -29,7 +29,7 @@ class WifiP2pServer(
 
     override val tag: String = TAG
 
-    private var serverClientManager: ITcpClientManager? = null
+    private var clientManager: ITcpClientManager? = null
     private var serverTask: ITcpServerTask? = null
     private var clientTask: ITcpClientTask? = null
 
@@ -86,31 +86,34 @@ class WifiP2pServer(
         serverClientManager.unregisterServer(handshakeServer)
         NetLog.d(TAG, "Handshake: $handshake")
 
+        this.serverTask = serverTask
+        this.clientTask = clientTask
+        this.clientManager = serverClientManager
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.serverTask = null
+                this.clientTask = null
+                this.clientManager = null
                 serverTask.stopTask()
                 clientTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Task connected.")
-            this.serverTask = serverTask
-            this.clientTask = clientTask
             serverClientManager.registerServer(createConnServer)
             serverClientManager.registerServer(closeP2pServer)
-            this.serverClientManager = serverClientManager
             onConnectionCreated(serverTask, clientTask)
         }
     }
 
-    override fun clientManager(): ITcpClientManager? = serverClientManager
+    override fun clientManager(): ITcpClientManager? = clientManager
 
     override fun release() {
         clientTask?.stopTask()
         serverTask?.stopTask()
-        serverClientManager = null
+        clientManager = null
         coroutineScope.cancel()
     }
 

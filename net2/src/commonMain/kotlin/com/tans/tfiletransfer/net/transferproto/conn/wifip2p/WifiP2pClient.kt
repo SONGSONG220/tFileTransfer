@@ -70,19 +70,21 @@ class WifiP2pClient(
         wifiHandshakeFlow.value = handshake
         NetLog.d(TAG, "Handshake: $handshake")
 
+        this.clientTask = clientTask
+        this.clientManager = clientManager
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.clientTask = null
+                this.clientManager = null
                 clientTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Task connected.")
-            this.clientTask = clientTask
             clientManager.registerServer(createConnServer)
             clientManager.registerServer(closeP2pServer)
-            this.clientManager = clientManager
             onConnectionCreated(clientTask)
         }
     }

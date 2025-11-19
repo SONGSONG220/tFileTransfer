@@ -27,15 +27,18 @@ class TcpClientTask(
                 .connect(serverAddress.address, serverAddress.port) {
                     reuseAddress = true
                 }
+            this.socket = socket
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
-                    socket.close()
+                    this.socket = null
+                    runCatching {
+                        socket.close()
+                    }
                 },
                 success = {
                     NetLog.d(TAG, "Connect to server $serverAddress success.")
-                    this.socket = socket
                     startRead(socket)
                     startWrite(socket)
                 }

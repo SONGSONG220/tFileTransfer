@@ -59,11 +59,15 @@ class UdpTask(
                         }
                     }
                 }
+            this.socket = socket
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
-                    socket.close()
+                    this.socket = null
+                    runCatching {
+                        socket.close()
+                    }
                 },
                 success = {
                     NetLog.d(TAG, "Udp connect success: $connectionType")

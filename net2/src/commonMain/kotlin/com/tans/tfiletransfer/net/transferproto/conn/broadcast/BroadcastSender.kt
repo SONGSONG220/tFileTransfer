@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -42,7 +43,7 @@ class BroadcastSender(
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
 
-    private val connectionRequestFlow: MutableSharedFlow<RemoteDevice> = MutableSharedFlow()
+    private val connectionRequestFlow: MutableSharedFlow<RemoteDevice> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private var senderTask: UdpTask? = null
     private var createConnectionTask: UdpTask? = null
@@ -75,18 +76,20 @@ class BroadcastSender(
                 return
             }
         }
+        this.senderTask = senderTask
+        this.createConnectionTask = createConnectionTask
         updateStateExpect(
             expect = TaskState.Connecting,
             update = TaskState.Connected,
             fail = {
+                this.senderTask = null
+                this.createConnectionTask = null
                 senderTask.stopTask()
                 createConnectionTask.stopTask()
                 error(TransferException("Fail to update connected state."))
             }
         ) {
             NetLog.d(TAG, "Broadcast sender task and create connection task connected.")
-            this.senderTask = senderTask
-            this.createConnectionTask = createConnectionTask
             onConnectionCreated(senderClient, createConnectionTask)
         }
 
@@ -157,12 +160,15 @@ class BroadcastSender(
                 NetLog.d(TAG, "Received create connection request. Request: $r")
                 if (isNewRequest) {
                     if (r.version == TransferProtoConstant.VERSION) {
-                        connectionRequestFlow.tryEmit(
+                        val isSuccess = connectionRequestFlow.tryEmit(
                             RemoteDevice(
                                 deviceName = r.deviceName,
                                 remoteAddress = remoteAddress.address
                             )
                         )
+                        if (!isSuccess) {
+                            NetLog.e(TAG, "Failed to emit connection request. Request: $r")
+                        }
                     } else {
                         NetLog.w(TAG, "Received create connection request with invalid version. Request: $r")
                     }

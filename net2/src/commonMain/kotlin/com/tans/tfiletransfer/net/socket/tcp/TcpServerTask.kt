@@ -43,14 +43,17 @@ class TcpServerTask(
                 .bind(bindAddress.address, bindAddress.port) {
                     reuseAddress = true
                 }
+            this.serverSocket = serverSocket
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
-                    serverSocket.close()
+                    runCatching {
+                        serverSocket.close()
+                    }
+                    this.serverSocket = null
                 },
                 success = {
-                    this.serverSocket = serverSocket
                     NetLog.d(TAG, "Bind address $bindAddress success.")
                     waitingClients(serverSocket)
                 })
@@ -124,14 +127,17 @@ class TcpServerTask(
 
         override suspend fun onStartTask() {
             super.onStartTask()
+            this.socket = clientSocket
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
-                    clientSocket.close()
+                    this.socket = null
+                    runCatching {
+                        clientSocket.close()
+                    }
                 }
             ) {
-                this.socket = clientSocket
                 startRead(clientSocket)
                 startWrite(clientSocket)
             }

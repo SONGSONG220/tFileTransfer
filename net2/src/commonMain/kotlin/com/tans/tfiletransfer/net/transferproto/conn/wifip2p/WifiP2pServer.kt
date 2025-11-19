@@ -4,7 +4,6 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.Address
 import com.tans.tfiletransfer.net.socket.AddressWithPort
-import com.tans.tfiletransfer.net.socket.ext.ITcpServerClientManager
 import com.tans.tfiletransfer.net.socket.ext.client.ITcpClientManager
 import com.tans.tfiletransfer.net.socket.ext.defaultClientManager
 import com.tans.tfiletransfer.net.socket.ext.server.defaultServerManager
@@ -30,7 +29,7 @@ class WifiP2pServer(
 
     override val tag: String = TAG
 
-    private var serverClientManager: ITcpServerClientManager? = null
+    private var serverClientManager: ITcpClientManager? = null
     private var serverTask: ITcpServerTask? = null
     private var clientTask: ITcpClientTask? = null
 

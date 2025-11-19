@@ -7,8 +7,10 @@ import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.resume
@@ -43,6 +45,14 @@ internal abstract class BaseClientManager() : IConnectionManager {
                 }
             }
         }
+    }
+
+    protected suspend fun <R : Any> safeTask(contCallback: (cont: CancellableContinuation<R>) -> Unit): R {
+        return connectionTask.coroutineScope.async {
+            suspendCancellableCoroutine { cont ->
+                contCallback(cont)
+            }
+        }.await()
     }
 
     abstract inner class Task<Request : Any, Response : Any>() {
@@ -171,6 +181,18 @@ internal abstract class BaseClientManager() : IConnectionManager {
                             callback.resumeWithException(SocketException(msg = e))
                         }
                     }
+                }
+            }
+        }
+
+        fun removeTaskForceUnsafe() {
+            try {
+                waitingResponseTasks.remove(this@Task)
+            } catch (_: Throwable) {
+            }
+            if (taskIsDone.compareAndSet(expect = false, update = true)) {
+                if (callback.isActive) {
+                    callback.resumeWithException(SocketException(msg = "Task force removed."))
                 }
             }
         }

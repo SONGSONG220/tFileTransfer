@@ -65,7 +65,7 @@ class TcpServerTask(
     override fun clientChannel(): Channel<ClientTask> = clientTaskChannel
 
     override suspend fun onStopTask(cause: String?) {
-        NetLog.d(TAG, "Stop task: $cause")
+        NetLog.d(TAG, "Task stopped. Cause: $cause")
         release()
     }
 

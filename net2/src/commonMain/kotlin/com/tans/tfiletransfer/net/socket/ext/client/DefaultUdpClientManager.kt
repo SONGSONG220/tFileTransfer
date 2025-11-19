@@ -10,6 +10,7 @@ import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.reflect.KClass
@@ -43,19 +44,25 @@ internal class DefaultUdpClientManager(
         targetAddress: AddressWithPort,
         retryTimes: Int,
         retryTimeoutInMillis: Long
-    ): Response = suspendCancellableCoroutine { cont ->
-        UdpTask(
-            udpTargetAddress = targetAddress,
-            requestType = requestType,
-            messageId = generateMessageId(),
-            request = request,
-            requestClass = requestClass,
-            responseType = responseType,
-            responseClass = responseClass,
-            retryTimes = retryTimes,
-            retryTimeoutInMillis = retryTimeoutInMillis,
-            callback = cont
-        ).run()
+    ): Response  {
+        return safeTask { cont ->
+            val task = UdpTask(
+                udpTargetAddress = targetAddress,
+                requestType = requestType,
+                messageId = generateMessageId(),
+                request = request,
+                requestClass = requestClass,
+                responseType = responseType,
+                responseClass = responseClass,
+                retryTimes = retryTimes,
+                retryTimeoutInMillis = retryTimeoutInMillis,
+                callback = cont
+            )
+            task.run()
+            cont.invokeOnCancellation {
+                task.removeTaskForceUnsafe()
+            }
+        }
     }
 
     override suspend fun <Request : Any> request(

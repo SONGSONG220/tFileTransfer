@@ -41,18 +41,24 @@ internal class DefaultTcpClientManager(
         responseClass: KClass<Response>,
         retryTimes: Int,
         retryTimeoutInMillis: Long
-    ): Response = suspendCancellableCoroutine { cont ->
-        TcpTask(
-            requestType = requestType,
-            messageId = generateMessageId(),
-            request = request,
-            requestClass = requestClass,
-            responseType = responseType,
-            responseClass = responseClass,
-            retryTimes = retryTimes,
-            retryTimeoutInMillis = retryTimeoutInMillis,
-            callback = cont
-        ).run()
+    ): Response {
+        return safeTask { cont ->
+            val task = TcpTask(
+                requestType = requestType,
+                messageId = generateMessageId(),
+                request = request,
+                requestClass = requestClass,
+                responseType = responseType,
+                responseClass = responseClass,
+                retryTimes = retryTimes,
+                retryTimeoutInMillis = retryTimeoutInMillis,
+                callback = cont
+            )
+            task.run()
+            cont.invokeOnCancellation {
+                task.removeTaskForceUnsafe()
+            }
+        }
     }
 
     override suspend fun <Request : Any> request(

@@ -31,7 +31,7 @@ abstract class BaseTcpClientTask(
     protected var socket: Socket? = null
 
     override suspend fun onStopTask(cause: String?) {
-        NetLog.d(tag, "Task stopped: $cause")
+        NetLog.d(tag, "Task stopped. Cause: $cause")
         release()
     }
 

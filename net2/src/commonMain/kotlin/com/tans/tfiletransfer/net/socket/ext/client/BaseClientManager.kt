@@ -191,6 +191,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
             } catch (_: Throwable) {
             }
             if (taskIsDone.compareAndSet(expect = false, update = true)) {
+                NetLog.w(tag, "Remove task force: requestType=$requestType, responseType=$requestType, messageId=$messageId")
                 if (callback.isActive) {
                     callback.resumeWithException(SocketException(msg = "Task force removed."))
                 }

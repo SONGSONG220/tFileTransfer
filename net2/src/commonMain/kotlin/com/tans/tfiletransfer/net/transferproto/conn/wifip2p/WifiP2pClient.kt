@@ -94,7 +94,6 @@ class WifiP2pClient(
     override fun release() {
         clientTask?.stopTask()
         clientManager = null
-        coroutineScope.cancel()
     }
 
     private fun onConnectionCreated(

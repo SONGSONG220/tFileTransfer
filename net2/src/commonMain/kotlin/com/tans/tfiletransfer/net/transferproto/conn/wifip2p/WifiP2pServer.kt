@@ -114,7 +114,6 @@ class WifiP2pServer(
         clientTask?.stopTask()
         serverTask?.stopTask()
         clientManager = null
-        coroutineScope.cancel()
     }
 
     private fun onConnectionCreated(

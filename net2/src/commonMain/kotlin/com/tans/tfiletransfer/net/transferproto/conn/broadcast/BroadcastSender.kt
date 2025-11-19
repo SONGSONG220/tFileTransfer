@@ -183,7 +183,6 @@ class BroadcastSender(
         senderTask = null
         createConnectionTask?.stopTask()
         createConnectionTask = null
-        coroutineScope.cancel()
     }
 
     companion object {

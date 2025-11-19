@@ -110,7 +110,6 @@ class QRCodeServer(private val localAddress: Address) : ITask {
     private fun release() {
         createConnTask?.stopTask()
         createConnTask = null
-        coroutineScope.cancel()
     }
 
     companion object {

@@ -215,7 +215,6 @@ class BroadcastReceiver(
         createConnectionTask = null
         createConnectionTaskClient = null
         remoteDevicesFlow.value = emptyList()
-        coroutineScope.cancel()
     }
 
     companion object {

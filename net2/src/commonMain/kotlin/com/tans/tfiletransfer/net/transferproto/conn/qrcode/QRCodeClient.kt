@@ -105,7 +105,6 @@ class QRCodeClient(
         createConnTask?.stopTask()
         createConnClient = null
         createConnTask = null
-        coroutineScope.cancel()
     }
 
     companion object {

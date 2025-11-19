@@ -1,6 +1,7 @@
 package com.tans.tfiletransfer.net.socket.tcp
 
 import com.tans.tfiletransfer.net.NetLog
+import com.tans.tfiletransfer.net.collections.AtomicList
 import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.SocketException
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class TcpServerTask(
     private val bindAddress: AddressWithPort,
@@ -33,8 +33,7 @@ class TcpServerTask(
     private var serverSocket: ServerSocket? = null
 
     private val clientTaskChannel: Channel<ClientTask> = Channel(10)
-    private val clientTasks = mutableListOf<ClientTask>()
-    private val clientTasksMutex: Mutex = Mutex()
+    private val clientTasks = AtomicList<ClientTask>()
 
     override suspend fun onStartTask() {
         try {
@@ -81,12 +80,10 @@ class TcpServerTask(
         serverSocket = null
         selectorManager.close()
         clientTaskChannel.close()
-        clientTasksMutex.withLock {
-            for (t in clientTasks) {
-                t.stopTask()
-            }
-            clientTasks.clear()
+        for (t in clientTasks.snapshot) {
+            t.stopTask()
         }
+        clientTasks.clear()
     }
 
     private fun waitingClients(serverSocket: ServerSocket) {
@@ -97,16 +94,12 @@ class TcpServerTask(
                     NetLog.d(TAG, "Coming new client: ${client.remoteAddress}")
                     val t = ClientTask(client)
                     t.startTask()
-                    clientTasksMutex.withLock {
-                        clientTasks.add(t)
-                    }
+                    clientTasks.add(t)
                     clientTaskChannel.send(t)
                     coroutineScope.launch {
                         try {
                             t.state().first { it is TaskState.Closed || it is TaskState.Error }
-                            clientTasksMutex.withLock {
-                                clientTasks.remove(t)
-                            }
+                            clientTasks.remove(t)
                         } catch (_: Throwable) {
                         }
                     }

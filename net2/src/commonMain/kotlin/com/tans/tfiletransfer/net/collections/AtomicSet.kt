@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.collections
 
 import kotlinx.atomicfu.atomic
 
-internal class AtomicSet<T>(initial: Set<T> = emptySet()) : MutableCollection<T> {
+internal class AtomicSet<T>(initial: Set<T> = emptySet()) : MutableSet<T> {
     private val ref = atomic(initial)
     val snapshot: Set<T> get() = ref.value
 

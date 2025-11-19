@@ -2,7 +2,7 @@ package com.tans.tfiletransfer.net.collections
 
 import kotlinx.atomicfu.atomic
 
-internal class AtomicList<T>(initial: List<T> = emptyList()) : MutableCollection<T> {
+internal class AtomicList<T>(initial: List<T> = emptyList()) : MutableList<T> {
     private val ref = atomic(initial)
     val snapshot: List<T> get() = ref.value
 
@@ -29,6 +29,17 @@ internal class AtomicList<T>(initial: List<T> = emptyList()) : MutableCollection
             val cur = ref.value
             if (elements.isEmpty()) return false
             val next = cur.toMutableList().also { it.addAll(elements) }.toList()
+            if (ref.compareAndSet(cur, next)) return true
+        }
+    }
+
+    override fun addAll(index: Int, elements: Collection<T>): Boolean {
+        while (true) {
+            val cur = ref.value
+            if (elements.isEmpty()) return false
+            val m = cur.toMutableList()
+            m.addAll(index, elements)
+            val next = m.toList()
             if (ref.compareAndSet(cur, next)) return true
         }
     }
@@ -83,4 +94,82 @@ internal class AtomicList<T>(initial: List<T> = emptyList()) : MutableCollection
             }
         }
     }
+
+    override fun get(index: Int): T = ref.value[index]
+
+    override fun set(index: Int, element: T): T {
+        while (true) {
+            val cur = ref.value
+            val old = cur[index]
+            val m = cur.toMutableList()
+            m[index] = element
+            val next = m.toList()
+            if (ref.compareAndSet(cur, next)) return old
+        }
+    }
+
+    override fun add(index: Int, element: T) {
+        while (true) {
+            val cur = ref.value
+            val m = cur.toMutableList()
+            m.add(index, element)
+            val next = m.toList()
+            if (ref.compareAndSet(cur, next)) return
+        }
+    }
+
+    override fun removeAt(index: Int): T {
+        while (true) {
+            val cur = ref.value
+            val m = cur.toMutableList()
+            val old = m.removeAt(index)
+            val next = m.toList()
+            if (ref.compareAndSet(cur, next)) return old
+        }
+    }
+
+    override fun indexOf(element: T): Int = ref.value.indexOf(element)
+    override fun lastIndexOf(element: T): Int = ref.value.lastIndexOf(element)
+
+    override fun listIterator(): MutableListIterator<T> = listIterator(0)
+
+    override fun listIterator(index: Int): MutableListIterator<T> {
+        val list = snapshot
+        var i = index
+        var lastIndex = -1
+        return object : MutableListIterator<T> {
+            override fun hasNext(): Boolean = i < list.size
+            override fun next(): T {
+                val v = list[i]
+                lastIndex = i
+                i += 1
+                return v
+            }
+            override fun hasPrevious(): Boolean = i > 0
+            override fun previous(): T {
+                i -= 1
+                val v = list[i]
+                lastIndex = i
+                return v
+            }
+            override fun nextIndex(): Int = i
+            override fun previousIndex(): Int = i - 1
+            override fun remove() {
+                if (lastIndex < 0) throw IllegalStateException()
+                this@AtomicList.removeAt(lastIndex)
+                lastIndex = -1
+            }
+            override fun set(element: T) {
+                if (lastIndex < 0) throw IllegalStateException()
+                this@AtomicList.set(lastIndex, element)
+            }
+            override fun add(element: T) {
+                this@AtomicList.add(i, element)
+                i += 1
+                lastIndex = -1
+            }
+        }
+    }
+
+    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> = ref.value.subList(fromIndex, toIndex).toMutableList()
 }

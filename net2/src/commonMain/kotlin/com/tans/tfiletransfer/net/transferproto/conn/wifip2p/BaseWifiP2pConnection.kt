@@ -59,7 +59,7 @@ abstract class BaseWifiP2pConnection : ITask {
     protected val closeP2pServer: IServer<Unit, Unit> by lazy {
         server(
             requestType = WifiP2pDataType.CloseP2pReq.type,
-            responseType = WifiP2pDataType.CloseP2pReq.type,
+            responseType = WifiP2pDataType.CloseP2pRsp.type,
         ) { _, remoteAddress, _, isNew ->
             NetLog.d(tag, "Remote device $remoteAddress request to close WiFi-P2P connection.")
             if (isNew) {

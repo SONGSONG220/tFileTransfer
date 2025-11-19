@@ -22,8 +22,8 @@ object WifiP2pServerTest {
                 println("Server handshake success: $handshake")
                 if (handshake != null) {
                     val requestCloseJob = launch {
-                        // val ret = server.requestCloseWifiP2p()
-                        // println("Server request close wifi p2p: $ret")
+                         val ret = server.requestCloseWifiP2p()
+                         println("Server request close wifi p2p: $ret")
                     }
                     val waitRequestJob = launch {
                         val req = server.connectionRequest().first()

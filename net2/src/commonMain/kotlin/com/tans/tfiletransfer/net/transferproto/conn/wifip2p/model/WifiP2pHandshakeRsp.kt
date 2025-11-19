@@ -4,9 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class P2pHandshakeReq(
-    @SerialName("version")
-    val version: Int,
+data class WifiP2pHandshakeRsp(
     @SerialName("deviceName")
     val deviceName: String
 )

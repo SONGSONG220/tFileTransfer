@@ -8,11 +8,11 @@ object MainTest {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-//            launch {
-//                UdpBroadcastReceiverTest.run()
-//            }
             launch {
-                UdpBroadcastSenderTest.run()
+                QRCodeServerTest.run()
+            }
+            launch {
+                QRCodeClientTest.run()
             }
         }
     }

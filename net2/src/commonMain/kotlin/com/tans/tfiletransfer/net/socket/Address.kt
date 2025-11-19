@@ -22,7 +22,6 @@ data class BroadcastAddress(
 
 expect fun findLocalAddressV4(): List<Address>
 
-
 expect fun Address.getBroadcastAddressV4(): BroadcastAddress
 
 fun Int.toBytes(): ByteArray {
@@ -55,3 +54,7 @@ fun ByteArray.toAddress(): Address {
         throw Exception("The length of the byte array must be at least 4 bytes long.")
     return "${get(0).toUByte()}.${get(1).toUByte()}.${get(2).toUByte()}.${get(3).toUByte()}"
 }
+
+fun Address.toInt(): Int = this.toBytes().toInt()
+
+fun Int.toAddress(): Address = this.toBytes().toAddress()

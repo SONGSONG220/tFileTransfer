@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class QRCodeTransferFileReq(
+data class QRCodeCreateConnReq(
     @SerialName("version")
     val version: Int,
     @SerialName("deviceName")

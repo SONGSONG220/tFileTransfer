@@ -4,16 +4,16 @@ object TransferProtoConstant {
     const val VERSION: Int = 20230523
 
     /**
-     * P2P Connect
+     * WiFi-P2P Connect
      */
-    const val P2P_GROUP_OWNER_PORT = 1996
+    const val WIFI_P2P_CONN_GROUP_OWNER_PORT = 1996
 
     /**
      * Broadcast Connection
      */
-    const val BROADCAST_SCANNER_PORT = 1997
-    const val BROADCAST_CREATE_CONN_SERVER_PORT = 1998
-    const val BROADCAST_CREATE_CONN_CLIENT_PORT = 1999
+    const val BROADCAST_CONN_SCANNER_PORT = 1997
+    const val BROADCAST_CONN_SERVER_PORT = 1998
+    const val BROADCAST_CONN_CLIENT_PORT = 1999
 
     /**
      * File Explore
@@ -28,5 +28,6 @@ object TransferProtoConstant {
     /**
      * QR code scan connection
      */
-    const val QR_CODE_SCAN_SERVER_PORT = 2002
+    const val QR_CODE_CONN_SERVER_PORT = 2002
+    const val QR_CODE_CONN_CLIENT_PORT = 2003
 }

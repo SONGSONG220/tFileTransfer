@@ -16,7 +16,7 @@ import com.tans.tfiletransfer.net.transferproto.TransferException
 import com.tans.tfiletransfer.net.transferproto.TransferProtoConstant
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastCreateConnReq
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastCreateConnRsp
-import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastDataType
+import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastConnType
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastMsg
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.RemoteDevice
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +53,7 @@ class BroadcastReceiver(
     override suspend fun onStartTask() {
         val receiverTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Bind(
-                localAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT)
+                localAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_CONN_SCANNER_PORT)
             ),
             enableBroadcast = true
         )
@@ -66,7 +66,7 @@ class BroadcastReceiver(
         }
         val createConnectionTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Bind(
-                localAddress = AddressWithPort(localAddress, TransferProtoConstant.BROADCAST_CREATE_CONN_CLIENT_PORT)
+                localAddress = AddressWithPort(localAddress, TransferProtoConstant.BROADCAST_CONN_CLIENT_PORT)
             )
         )
         createConnectionTask.startTask()
@@ -104,17 +104,17 @@ class BroadcastReceiver(
         release()
     }
 
-    suspend fun requestCreateConnectionToRemoteDevice(remoteDevice: RemoteDevice): BroadcastCreateConnRsp? {
+    suspend fun requestCreateConnection(remoteDevice: RemoteDevice): BroadcastCreateConnRsp? {
         return try {
             val req = BroadcastCreateConnReq(
                 version = TransferProtoConstant.VERSION,
                 deviceName = localDeviceName
             )
             createConnectionTaskClient?.requestSimplify<BroadcastCreateConnReq, BroadcastCreateConnRsp>(
-                requestType = BroadcastDataType.CreateConnReq.type,
+                requestType = BroadcastConnType.CreateConnReq.type,
                 request = req,
-                responseType = BroadcastDataType.CreateConnRsp.type,
-                targetAddress = AddressWithPort(remoteDevice.remoteAddress, TransferProtoConstant.BROADCAST_CREATE_CONN_SERVER_PORT)
+                responseType = BroadcastConnType.CreateConnRsp.type,
+                targetAddress = AddressWithPort(remoteDevice.remoteAddress, TransferProtoConstant.BROADCAST_CONN_SERVER_PORT)
             ) ?: throw TransferException("Connection has already closed.")
         } catch (e: Exception) {
             NetLog.e(TAG, "Failed to request create connection to remote device. Cause: ${e.message}", e)
@@ -197,7 +197,7 @@ class BroadcastReceiver(
         }
         receiverTask.defaultServerManager()
             .registerServer(server<BroadcastMsg, Unit>(
-                requestType = BroadcastDataType.BroadcastMsg.type,
+                requestType = BroadcastConnType.BroadcastMsg.type,
                 responseType = -1
             ) { _, remoteAddress, r, isNewRequest ->
                 receiveBroadcastMsg(remoteAddress, r)

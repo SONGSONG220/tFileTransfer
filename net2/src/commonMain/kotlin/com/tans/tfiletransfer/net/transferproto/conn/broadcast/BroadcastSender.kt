@@ -15,7 +15,7 @@ import com.tans.tfiletransfer.net.transferproto.TransferException
 import com.tans.tfiletransfer.net.transferproto.TransferProtoConstant
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastCreateConnReq
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastCreateConnRsp
-import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastDataType
+import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastConnType
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.BroadcastMsg
 import com.tans.tfiletransfer.net.transferproto.conn.broadcast.model.RemoteDevice
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +50,7 @@ class BroadcastSender(
     override suspend fun onStartTask() {
         val senderTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Connect(
-                remoteAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT),
+                remoteAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_CONN_SCANNER_PORT),
             ),
             enableBroadcast = true
         )
@@ -64,7 +64,7 @@ class BroadcastSender(
         }
         val createConnectionTask = UdpTask(
             connectionType = UdpTask.Companion.UdpConnectionType.Bind(
-                localAddress = AddressWithPort(localAddress, TransferProtoConstant.BROADCAST_CREATE_CONN_SERVER_PORT)
+                localAddress = AddressWithPort(localAddress, TransferProtoConstant.BROADCAST_CONN_SERVER_PORT)
             )
         )
         createConnectionTask.startTask()
@@ -137,9 +137,9 @@ class BroadcastSender(
                 while (true) {
                     try {
                         senderClient.requestSimplify<String>(
-                            requestType = BroadcastDataType.BroadcastMsg.type,
+                            requestType = BroadcastConnType.BroadcastMsg.type,
                             request = broadcastStr,
-                            targetAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_SCANNER_PORT)
+                            targetAddress = AddressWithPort(broadcastAddress, TransferProtoConstant.BROADCAST_CONN_SCANNER_PORT)
                         )
                     } catch (e: Throwable) {
                         NetLog.e(TAG, "Failed to send broadcast message. Cause: ${e.message}", e)
@@ -151,8 +151,8 @@ class BroadcastSender(
 
         createConnectionTask.defaultServerManager()
             .registerServer(server<BroadcastCreateConnReq, BroadcastCreateConnRsp>(
-                requestType = BroadcastDataType.CreateConnReq.type,
-                responseType = BroadcastDataType.CreateConnRsp.type
+                requestType = BroadcastConnType.CreateConnReq.type,
+                responseType = BroadcastConnType.CreateConnRsp.type
             ) { _, remoteAddress, r, isNewRequest ->
                 NetLog.d(TAG, "Received create connection request. Request: $r")
                 if (isNewRequest) {

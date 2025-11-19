@@ -9,10 +9,10 @@ object MainTest {
     fun main(args: Array<String>) {
         runBlocking {
             launch {
-                QRCodeServerTest.run()
+                WifiP2pServerTest.run()
             }
             launch {
-                QRCodeClientTest.run()
+                WifiP2pClientTest.run()
             }
         }
     }

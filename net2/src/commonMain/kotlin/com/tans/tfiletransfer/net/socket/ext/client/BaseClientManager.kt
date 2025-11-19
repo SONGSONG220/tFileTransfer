@@ -4,15 +4,14 @@ import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.ext.IConnectionManager
+import com.tans.tfiletransfer.net.collections.AtomicSet
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.reflect.KClass
@@ -25,8 +24,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
     abstract val tag: String
 
-    private val waitingResponseTasksLock = Mutex()
-    private val waitingResponseTasks = mutableSetOf<Task<*, *>>()
+    private val waitingResponseTasks = AtomicSet<Task<*, *>>()
     private val messageId = atomic(0L)
 
     protected fun generateMessageId(): Long = messageId.addAndGet(1)
@@ -35,24 +33,26 @@ internal abstract class BaseClientManager() : IConnectionManager {
     protected fun onResponseData(msg: PackageData) {
         // 通知正在等待 server 回复消息的 Task
         connectionTask.coroutineScope.launch {
-            waitingResponseTasksLock.withLock {
-                val iterator = waitingResponseTasks.iterator()
-                while (iterator.hasNext()) {
-                    if (iterator.next().onResponseData(msg)) {
-                        iterator.remove()
-                        break
-                    }
+            val snapshot = waitingResponseTasks.snapshot
+            var matched: Task<*, *>? = null
+            for (t in snapshot) {
+                if (t.onResponseData(msg)) {
+                    matched = t
+                    break
                 }
+            }
+            if (matched != null) {
+                waitingResponseTasks.remove(matched)
             }
         }
     }
 
     protected suspend fun <R : Any> safeTask(contCallback: (cont: CancellableContinuation<R>) -> Unit): R {
-        return connectionTask.coroutineScope.async {
+        return withContext(connectionTask.coroutineScope.coroutineContext) {
             suspendCancellableCoroutine { cont ->
                 contCallback(cont)
             }
-        }.await()
+        }
     }
 
     abstract inner class Task<Request : Any, Response : Any>() {
@@ -119,9 +119,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         delay(delay)
                     }
                     // 将当前任务添加到等待回复的队列
-                    waitingResponseTasksLock.withLock {
-                        waitingResponseTasks.add(this@Task)
-                    }
+                    waitingResponseTasks.add(this@Task)
                     val requestConverter = converterFactory.findPackageConverter(
                         type = requestType,
                         dataTypeClass = requestClass
@@ -165,12 +163,11 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
         // 发送失败，处理异常
         private fun handleError(e: String) {
+            timeoutTask.getAndSet(null)?.cancel()
             connectionTask.coroutineScope.launch {
                 NetLog.e(tag, "Send request error: msgId=$messageId, cmdType=$requestType, error=$e")
                 // 从等待队列中移除当前任务
-                waitingResponseTasksLock.withLock {
-                    waitingResponseTasks.remove(this@Task)
-                }
+                waitingResponseTasks.remove(this@Task)
                 if (taskIsDone.compareAndSet(expect = false, update = true)) {
                     // 判断是否需要重试，如果需要重试，构建一个新的任务继续请求，反之直接回调异常.
                     if (retryTimes > 0) {
@@ -186,12 +183,10 @@ internal abstract class BaseClientManager() : IConnectionManager {
         }
 
         fun removeTaskForceUnsafe() {
-            try {
-                waitingResponseTasks.remove(this@Task)
-            } catch (_: Throwable) {
-            }
+            timeoutTask.getAndSet(null)?.cancel()
+            waitingResponseTasks.remove(this@Task)
             if (taskIsDone.compareAndSet(expect = false, update = true)) {
-                NetLog.w(tag, "Remove task force: requestType=$requestType, responseType=$requestType, messageId=$messageId")
+                NetLog.w(tag, "Remove task force: requestType=$requestType, responseType=$responseType, messageId=$messageId")
                 if (callback.isActive) {
                     callback.resumeWithException(SocketException(msg = "Task force removed."))
                 }

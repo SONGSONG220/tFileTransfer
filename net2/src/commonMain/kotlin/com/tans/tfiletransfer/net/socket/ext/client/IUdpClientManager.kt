@@ -17,8 +17,8 @@ interface IUdpClientManager : IConnectionManager {
         responseType: Int,
         responseClass: KClass<Response>,
         targetAddress: AddressWithPort,
-        retryTimes: Int = 2,
-        retryTimeoutInMillis: Long = 1000L,
+        retryTimes: Int = DEFAULT_RETRY_TIMES,
+        retryTimeoutInMillis: Long = DEFAULT_RETRY_TIMEOUT,
     ) : Response
 
     suspend fun <Request : Any> request(

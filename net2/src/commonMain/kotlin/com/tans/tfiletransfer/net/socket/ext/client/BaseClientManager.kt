@@ -29,13 +29,11 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
     protected fun generateMessageId(): Long = messageId.addAndGet(1)
 
-    // 收到来自 server 的回复消息
     protected fun onResponseData(
         responsePkt: PackageData,
         remoteAddress: String,
         remotePort: Int
     ) {
-        // 通知正在等待 server 回复消息的 Task
         connectionTask.coroutineScope.launch {
             val snapshot = waitingResponseTasks.snapshot
             var matched: Task<*, *>? = null
@@ -78,19 +76,15 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
         abstract fun handleResponseData(responsePkt: PackageData, remoteAddress: String, remotePort: Int) : Boolean
 
-        // 收到来自 Server 的回复消息
         fun onResponseData(
             responsePkt: PackageData,
             remoteAddress: String,
             remotePort: Int
         ) : Boolean {
-            return if (handleResponseData(responsePkt, remoteAddress, remotePort)) { // 是当前的任务的回复消息
+            return if (handleResponseData(responsePkt, remoteAddress, remotePort)) { // Response for me.
                 connectionTask.coroutineScope.launch {
                     try {
-                        // 移除超时信息
                         timeoutTask.getAndSet(null)?.cancel()
-
-                        // 找到回复的消息的转换器
                         val responseConverter = converterFactory.findTypeConverter(responsePkt.type, responseClass)
                         if (responseConverter != null) {
                             val response = responseConverter.convert(
@@ -99,18 +93,17 @@ internal abstract class BaseClientManager() : IConnectionManager {
                                 responsePkt,
                                 connectionTask.bufferPool
                             )
-
-                            if (taskIsDone.compareAndSet(expect = false, update = true)) {
+                            if (taskIsDone.compareAndSet(expect = false, update = true)) { // Success.
                                 if (callback.isActive) {
                                     callback.resume(response)
                                 }
                             }
                         } else {
                             val errorMsg = "Didn't find converter for: $requestType, $responseClass"
-                            handleError(errorMsg)
+                            handleError(errorMsg, retryable = false)
                         }
                     } catch (e: Throwable) {
-                        handleError(e.message ?: "")
+                        handleError(e.message ?: "", retryable = true)
                     }
                 }
                 true
@@ -119,14 +112,12 @@ internal abstract class BaseClientManager() : IConnectionManager {
             }
         }
 
-        // 发送信息到 Server
-        fun run() {
+        fun run() { // Run task
             connectionTask.coroutineScope.launch {
                 try {
                     if (delay > 0) {
                         delay(delay)
                     }
-                    // 将当前任务添加到等待回复的队列
                     waitingResponseTasks.add(this@Task)
                     val requestConverter = converterFactory.findPackageConverter(
                         type = requestType,
@@ -134,7 +125,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
                     )
                     if (requestConverter == null) {
                         val errorMsg = "Didn't find converter for: $requestType, $requestClass"
-                        handleError(errorMsg)
+                        handleError(errorMsg, retryable = false)
                     } else {
                         val requestPkt = requestConverter.convert(
                             type = requestType,
@@ -146,21 +137,21 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         val isSendSuccess = writeRequestPktData(pktData = requestPkt)
                         if (!isSendSuccess) {
                             val errorMsg = "Request $requestType fail, connection task not active."
-                            handleError(errorMsg)
+                            handleError(errorMsg, retryable = true)
                         } else {
-                            val timeoutTask = connectionTask.coroutineScope.launch {
+                            val t = connectionTask.coroutineScope.launch {
                                 try {
                                     delay(retryTimeoutInMillis)
-                                    handleError("Waiting server response timeout: type=${requestType}")
+                                    handleError("Waiting server response timeout ${retryTimeoutInMillis}ms: type=${requestType}", retryable = true)
                                 } catch (_: Throwable) {
                                 }
                             }
-                            val old = this@Task.timeoutTask.getAndSet(timeoutTask)
+                            val old = this@Task.timeoutTask.getAndSet(t)
                             old?.cancel()
                         }
                     }
                 } catch (e: Throwable) {
-                    handleError(e.message ?: "Unknown error.")
+                    handleError(e.message ?: "Unknown error.", retryable = true)
                 }
             }
         }
@@ -169,16 +160,13 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
         abstract fun retry()
 
-        // 发送失败，处理异常
-        private fun handleError(e: String) {
+        private fun handleError(e: String, retryable: Boolean) {
             timeoutTask.getAndSet(null)?.cancel()
             connectionTask.coroutineScope.launch {
                 NetLog.e(tag, "Send request error: msgId=$messageId, cmdType=$requestType, error=$e")
-                // 从等待队列中移除当前任务
                 waitingResponseTasks.remove(this@Task)
                 if (taskIsDone.compareAndSet(expect = false, update = true)) {
-                    // 判断是否需要重试，如果需要重试，构建一个新的任务继续请求，反之直接回调异常.
-                    if (retryTimes > 0) {
+                    if (retryable && retryTimes > 0) {
                         NetLog.e(tag, "Retry request")
                         retry()
                     } else {

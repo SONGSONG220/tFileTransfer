@@ -190,7 +190,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
             }
         }
 
-        fun removeTaskForceUnsafe() {
+        fun removeTaskForce() {
             timeoutTask.getAndSet(null)?.cancel()
             waitingResponseTasks.remove(this@Task)
             if (taskIsDone.compareAndSet(expect = false, update = true)) {

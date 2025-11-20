@@ -23,17 +23,13 @@ internal abstract class BaseServerManager() : IServerManager {
                 if (snapshot.size < MAX_TRACKED_MESSAGE_IDS) {
                     messageIdRing.add(id)
                     break
-                } else if (snapshot.isNotEmpty()) {
+                } else {
                     val oldest = snapshot.first()
                     if (messageIdRing.remove(oldest)) {
                         handledMessageId.remove(oldest)
                         messageIdRing.add(id)
                         break
                     }
-                } else {
-                    // Shouldn't happen, but ensure progress
-                    messageIdRing.add(id)
-                    break
                 }
             }
         }

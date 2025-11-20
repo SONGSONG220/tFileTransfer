@@ -58,7 +58,7 @@ internal class DefaultUdpClientManager(
             )
             task.run()
             cont.invokeOnCancellation {
-                task.removeTaskForceUnsafe()
+                task.removeTaskForce()
             }
         }
     }

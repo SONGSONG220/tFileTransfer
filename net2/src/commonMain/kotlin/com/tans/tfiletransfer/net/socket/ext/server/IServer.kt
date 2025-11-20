@@ -60,6 +60,8 @@ interface IServer<Request : Any, Response : Any> {
                             "Reply client fail, requestType=$requestType, responseType=$responseType"
                         )
                     }
+                } else {
+                    NetLog.e(TAG, "Didn't find response pkt converter responseType=$responseType, responseTypeClazz=$responseClass")
                 }
 
             }

@@ -93,6 +93,7 @@ class WifiP2pClient(
 
     override fun release() {
         clientTask?.stopTask()
+        clientTask = null
         clientManager = null
     }
 

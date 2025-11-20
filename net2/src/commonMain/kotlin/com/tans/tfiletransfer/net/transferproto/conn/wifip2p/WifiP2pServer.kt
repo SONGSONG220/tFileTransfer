@@ -20,10 +20,13 @@ import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandsh
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class WifiP2pServer(
     private val localDeviceName: String,
-    private val localAddress: Address
+    private val localAddress: Address,
+    private val waitClientTimeoutInMillis: Long = 3000L,
+    private val waitHandshakeTimeoutInMillis: Long = 3000L,
 ) : BaseWifiP2pConnection() {
 
     override val tag: String = TAG
@@ -44,7 +47,9 @@ class WifiP2pServer(
             }
         }
         val clientTask = try {
-            serverTask.clientChannel().receive()
+            withTimeout(waitClientTimeoutInMillis) {
+                serverTask.clientChannel().receive()
+            }
         } catch (e: Throwable) {
             serverTask.stopTask()
             error(TransferException("Failed to receive client channel. Cause: ${e.message}", e))
@@ -75,7 +80,9 @@ class WifiP2pServer(
         }
         serverClientManager.registerServer(handshakeServer)
         val handshake = try {
-            wifiHandshakeFlow.filterNotNull().first()
+            withTimeout(waitHandshakeTimeoutInMillis) {
+                wifiHandshakeFlow.filterNotNull().first()
+            }
         } catch (e: Throwable) {
             serverTask.stopTask()
             clientTask.stopTask()

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ScanDirReq(
+data class ExploreDirReq(
     @SerialName("requestPath")
     val requestPath: String
 )

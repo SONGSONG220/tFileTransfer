@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SendFilesReq(
     @SerialName("sendFiles")
-    val sendFiles: List<FileExploreFile>,
+    val sendFiles: List<ExplorerFile>,
     @SerialName("maxConnection")
     val maxConnection: Int
 )

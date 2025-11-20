@@ -3,8 +3,8 @@ package com.tans.tfiletransfer.net.transferproto.fileexplore.model
 enum class FileExploreDataType(val type: Int) {
     HandshakeReq(0),
     HandshakeRsp(1),
-    ScanDirReq(2),
-    ScanDirRsp(3),
+    ExploreDirReq(2),
+    ExploreDirRsp(3),
     SendFilesReq(4),
     SendFilesRsp(5),
     DownloadFilesReq(6),

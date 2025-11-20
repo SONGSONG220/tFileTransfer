@@ -4,11 +4,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ScanDirRsp(
+data class ExploreDirRsp(
     @SerialName("path")
     val path: String,
     @SerialName("childrenDirs")
-    val childrenDirs: List<FileExploreDir>,
+    val childrenDirs: List<ExplorerDir>,
     @SerialName("childrenFiles")
-    val childrenFiles: List<FileExploreFile>
+    val childrenFiles: List<ExplorerFile>
 )

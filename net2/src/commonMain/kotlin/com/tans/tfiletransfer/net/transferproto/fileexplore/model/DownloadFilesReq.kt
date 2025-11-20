@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DownloadFilesReq(
     @SerialName("downloadFiles")
-    val downloadFiles: List<FileExploreFile>,
+    val downloadFiles: List<ExplorerFile>,
     @SerialName("bufferSize")
     val bufferSize: Int
 )

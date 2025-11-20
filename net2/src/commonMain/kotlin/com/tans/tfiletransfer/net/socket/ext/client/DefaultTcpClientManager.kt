@@ -58,6 +58,7 @@ internal class DefaultTcpClientManager(
                 responseType = responseType,
                 responseClass = responseClass,
                 retryTimes = retryTimes,
+                maxRetryTimes = retryTimes,
                 retryTimeoutInMillis = retryTimeoutInMillis,
                 callback = cont
             )
@@ -101,6 +102,7 @@ internal class DefaultTcpClientManager(
         override val responseType: Int,
         override val responseClass: KClass<Response>,
         override val retryTimes: Int,
+        override val maxRetryTimes: Int,
         override val retryTimeoutInMillis: Long,
         override val callback: CancellableContinuation<Response>,
         override val delay: Long = 0
@@ -118,7 +120,7 @@ internal class DefaultTcpClientManager(
             return responsePkt.type == responseType && responsePkt.messageId == this.messageId
         }
 
-        override fun retry() {
+        override fun retry(delay: Long) {
             TcpTask(
                 requestType = requestType,
                 messageId = messageId,
@@ -127,9 +129,10 @@ internal class DefaultTcpClientManager(
                 responseType = responseType,
                 responseClass = responseClass,
                 retryTimes = retryTimes - 1,
+                maxRetryTimes = maxRetryTimes,
                 retryTimeoutInMillis = retryTimeoutInMillis,
                 callback = callback,
-                delay = DEFAULT_RETRY_DELAY
+                delay = delay
             ).run()
         }
     }

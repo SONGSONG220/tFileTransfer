@@ -53,6 +53,7 @@ internal class DefaultUdpClientManager(
                 responseType = responseType,
                 responseClass = responseClass,
                 retryTimes = retryTimes,
+                maxRetryTimes = retryTimes,
                 retryTimeoutInMillis = retryTimeoutInMillis,
                 callback = cont
             )
@@ -106,6 +107,7 @@ internal class DefaultUdpClientManager(
         override val responseType: Int,
         override val responseClass: KClass<Response>,
         override val retryTimes: Int,
+        override val maxRetryTimes: Int,
         override val retryTimeoutInMillis: Long,
         override val callback: CancellableContinuation<Response>,
         override val delay: Long = 0
@@ -126,7 +128,7 @@ internal class DefaultUdpClientManager(
             return responsePkt.type == responseType && responsePkt.messageId == this.messageId && udpTargetAddress.address == remoteAddress
         }
 
-        override fun retry() {
+        override fun retry(delay: Long) {
             UdpTask(
                 udpTargetAddress = udpTargetAddress,
                 requestType = requestType,
@@ -136,9 +138,10 @@ internal class DefaultUdpClientManager(
                 responseType = responseType,
                 responseClass = responseClass,
                 retryTimes = retryTimes - 1,
+                maxRetryTimes = maxRetryTimes,
                 retryTimeoutInMillis = retryTimeoutInMillis,
                 callback = callback,
-                delay = DEFAULT_RETRY_DELAY
+                delay = delay
             ).run()
         }
     }

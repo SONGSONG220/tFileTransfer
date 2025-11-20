@@ -29,6 +29,13 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
     protected fun generateMessageId(): Long = messageId.addAndGet(1)
 
+    protected open fun nextRetryDelay(retryTimesLeft: Int, maxRetryTimes: Int): Long? {
+        if (retryTimesLeft <= 0) return null
+        val attemptIndex = maxRetryTimes - retryTimesLeft
+        val exp = DEFAULT_RETRY_DELAY * (1L shl attemptIndex.coerceAtLeast(0))
+        return exp.coerceAtMost(DEFAULT_RETRY_TIMEOUT)
+    }
+
     protected fun onResponseData(
         responsePkt: PackageData,
         remoteAddress: String,
@@ -36,15 +43,10 @@ internal abstract class BaseClientManager() : IConnectionManager {
     ) {
         connectionTask.coroutineScope.launch {
             val snapshot = waitingResponseTasks.snapshot
-            var matched: Task<*, *>? = null
             for (t in snapshot) {
                 if (t.onResponseData(responsePkt, remoteAddress, remotePort)) {
-                    matched = t
                     break
                 }
-            }
-            if (matched != null) {
-                waitingResponseTasks.remove(matched)
             }
         }
     }
@@ -66,6 +68,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
         abstract val responseType: Int
         abstract val responseClass: KClass<Response>
         abstract val retryTimes: Int
+        abstract val maxRetryTimes: Int
         abstract val retryTimeoutInMillis: Long
         abstract val callback: CancellableContinuation<Response>
         abstract val delay: Long
@@ -81,7 +84,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
             remoteAddress: String,
             remotePort: Int
         ) : Boolean {
-            return if (handleResponseData(responsePkt, remoteAddress, remotePort)) { // Response for me.
+            return if (handleResponseData(responsePkt, remoteAddress, remotePort)) {
                 connectionTask.coroutineScope.launch {
                     try {
                         timeoutTask.getAndSet(null)?.cancel()
@@ -93,17 +96,13 @@ internal abstract class BaseClientManager() : IConnectionManager {
                                 responsePkt,
                                 connectionTask.bufferPool
                             )
-                            if (taskIsDone.compareAndSet(expect = false, update = true)) { // Success.
-                                if (callback.isActive) {
-                                    callback.resume(response)
-                                }
-                            }
+                            completeSuccess(response)
                         } else {
                             val errorMsg = "Didn't find converter for: $requestType, $responseClass"
-                            handleError(errorMsg, retryable = false)
+                            completeFailure(errorMsg, retryable = false)
                         }
                     } catch (e: Throwable) {
-                        handleError(e.message ?: "", retryable = true)
+                        completeFailure(e.message ?: "", retryable = true)
                     }
                 }
                 true
@@ -112,7 +111,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
             }
         }
 
-        fun run() { // Run task
+        fun run() {
             connectionTask.coroutineScope.launch {
                 try {
                     if (delay > 0) {
@@ -125,7 +124,7 @@ internal abstract class BaseClientManager() : IConnectionManager {
                     )
                     if (requestConverter == null) {
                         val errorMsg = "Didn't find converter for: $requestType, $requestClass"
-                        handleError(errorMsg, retryable = false)
+                        completeFailure(errorMsg, retryable = false)
                     } else {
                         val requestPkt = requestConverter.convert(
                             type = requestType,
@@ -137,12 +136,12 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         val isSendSuccess = writeRequestPktData(pktData = requestPkt)
                         if (!isSendSuccess) {
                             val errorMsg = "Request $requestType fail, connection task not active."
-                            handleError(errorMsg, retryable = true)
+                            completeFailure(errorMsg, retryable = true)
                         } else {
                             val t = connectionTask.coroutineScope.launch {
                                 try {
                                     delay(retryTimeoutInMillis)
-                                    handleError("Waiting server response timeout ${retryTimeoutInMillis}ms: type=${requestType}", retryable = true)
+                                    completeFailure("Waiting server response timeout: type=${requestType}", retryable = true)
                                 } catch (_: Throwable) {
                                 }
                             }
@@ -151,24 +150,34 @@ internal abstract class BaseClientManager() : IConnectionManager {
                         }
                     }
                 } catch (e: Throwable) {
-                    handleError(e.message ?: "Unknown error.", retryable = true)
+                    completeFailure(e.message ?: "Unknown error.", retryable = true)
                 }
             }
         }
 
         abstract suspend fun writeRequestPktData(pktData: PackageData): Boolean
 
-        abstract fun retry()
+        abstract fun retry(delay: Long)
 
-        private fun handleError(e: String, retryable: Boolean) {
+        private fun completeSuccess(response: Response) {
+            waitingResponseTasks.remove(this@Task)
+            if (taskIsDone.compareAndSet(expect = false, update = true)) {
+                if (callback.isActive) {
+                    callback.resume(response)
+                }
+            }
+        }
+
+        private fun completeFailure(e: String, retryable: Boolean) {
             timeoutTask.getAndSet(null)?.cancel()
             connectionTask.coroutineScope.launch {
                 NetLog.e(tag, "Send request error: msgId=$messageId, cmdType=$requestType, error=$e")
                 waitingResponseTasks.remove(this@Task)
                 if (taskIsDone.compareAndSet(expect = false, update = true)) {
-                    if (retryable && retryTimes > 0) {
+                    val d = if (retryable) nextRetryDelay(retryTimes, maxRetryTimes) else null
+                    if (d != null) {
                         NetLog.e(tag, "Retry request")
-                        retry()
+                        retry(d)
                     } else {
                         if (callback.isActive) {
                             callback.resumeWithException(SocketException(msg = e))

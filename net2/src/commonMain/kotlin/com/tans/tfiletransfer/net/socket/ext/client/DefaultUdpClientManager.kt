@@ -10,9 +10,7 @@ import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.reflect.KClass
 
 internal class DefaultUdpClientManager(
@@ -27,7 +25,7 @@ internal class DefaultUdpClientManager(
             try {
                 connectionTask.pktReadChannel()
                     .collect {
-                        onResponseData(it.pkt)
+                        onResponseData(responsePkt = it.pkt, remoteAddress = it.address.address, remotePort = it.address.port)
                     }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Read pkt fail: ${e.message}", e)
@@ -118,6 +116,14 @@ internal class DefaultUdpClientManager(
                 pkt = pktData,
                 address = udpTargetAddress
             ))
+        }
+
+        override fun handleResponseData(
+            responsePkt: PackageData,
+            remoteAddress: String,
+            remotePort: Int
+        ): Boolean {
+            return responsePkt.type == responseType && responsePkt.messageId == this.messageId && udpTargetAddress.address == remoteAddress
         }
 
         override fun retry() {

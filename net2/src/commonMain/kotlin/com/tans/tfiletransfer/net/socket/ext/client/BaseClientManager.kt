@@ -30,13 +30,17 @@ internal abstract class BaseClientManager() : IConnectionManager {
     protected fun generateMessageId(): Long = messageId.addAndGet(1)
 
     // 收到来自 server 的回复消息
-    protected fun onResponseData(msg: PackageData) {
+    protected fun onResponseData(
+        responsePkt: PackageData,
+        remoteAddress: String,
+        remotePort: Int
+    ) {
         // 通知正在等待 server 回复消息的 Task
         connectionTask.coroutineScope.launch {
             val snapshot = waitingResponseTasks.snapshot
             var matched: Task<*, *>? = null
             for (t in snapshot) {
-                if (t.onResponseData(msg)) {
+                if (t.onResponseData(responsePkt, remoteAddress, remotePort)) {
                     matched = t
                     break
                 }
@@ -72,11 +76,15 @@ internal abstract class BaseClientManager() : IConnectionManager {
 
         private val timeoutTask = atomic<Job?>(null)
 
+        abstract fun handleResponseData(responsePkt: PackageData, remoteAddress: String, remotePort: Int) : Boolean
+
         // 收到来自 Server 的回复消息
         fun onResponseData(
-            responsePkt: PackageData
+            responsePkt: PackageData,
+            remoteAddress: String,
+            remotePort: Int
         ) : Boolean {
-            return if (responsePkt.type == responseType && responsePkt.messageId == this.messageId) { // 是当前的任务的回复消息
+            return if (handleResponseData(responsePkt, remoteAddress, remotePort)) { // 是当前的任务的回复消息
                 connectionTask.coroutineScope.launch {
                     try {
                         // 移除超时信息

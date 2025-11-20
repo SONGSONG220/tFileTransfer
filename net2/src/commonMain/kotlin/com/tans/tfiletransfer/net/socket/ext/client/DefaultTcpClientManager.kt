@@ -1,15 +1,17 @@
 package com.tans.tfiletransfer.net.socket.ext.client
 
 import com.tans.tfiletransfer.net.NetLog
+import com.tans.tfiletransfer.net.socket.AddressWithPort
 import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
+import com.tans.tfiletransfer.net.socket.toAddress
+import io.ktor.network.sockets.InetSocketAddress
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.reflect.KClass
 
 internal class DefaultTcpClientManager(
@@ -23,9 +25,14 @@ internal class DefaultTcpClientManager(
     init {
         connectionTask.coroutineScope.launch {
             try {
+                var remoteAddress: AddressWithPort? = null
                 connectionTask.pktReadChannel()
                     .collect {
-                        onResponseData(it)
+                        if (remoteAddress == null) {
+                            val inetAddress = (connection.connectionTask.socket()!!.remoteAddress as InetSocketAddress)
+                            remoteAddress = AddressWithPort(inetAddress.toAddress(), inetAddress.port)
+                        }
+                        onResponseData(it, remoteAddress.address, remoteAddress.port)
                     }
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Read pkt fail: ${e.message}", e)
@@ -101,6 +108,14 @@ internal class DefaultTcpClientManager(
 
         override suspend fun writeRequestPktData(pktData: PackageData): Boolean {
             return connectionTask.writePktData(pktData)
+        }
+
+        override fun handleResponseData(
+            responsePkt: PackageData,
+            remoteAddress: String,
+            remotePort: Int
+        ): Boolean {
+            return responsePkt.type == responseType && responsePkt.messageId == this.messageId
         }
 
         override fun retry() {

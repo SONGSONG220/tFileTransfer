@@ -19,6 +19,7 @@ object WifiP2pClientTest {
             serverAddress = serverAddress
         )
         coroutineScope {
+            delay(200)
             client.startTask()
             launch {
                 val handshake = client.waitHandshakeOrNull()

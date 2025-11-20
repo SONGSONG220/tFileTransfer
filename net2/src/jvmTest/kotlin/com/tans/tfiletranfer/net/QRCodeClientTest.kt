@@ -4,6 +4,7 @@ import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.findLocalAddressV4
 import com.tans.tfiletransfer.net.transferproto.conn.qrcode.QRCodeClient
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 object QRCodeClientTest {
@@ -15,8 +16,8 @@ object QRCodeClientTest {
             localDeviceName = "TestDevice_Client"
         )
         coroutineScope {
-            qrCodeClient.startTask()
             launch {
+                delay(200)
                 qrCodeClient.startTask()
                 val state = qrCodeClient.waitTaskConnectedOrError()
                 if (state is TaskState.Connected) {

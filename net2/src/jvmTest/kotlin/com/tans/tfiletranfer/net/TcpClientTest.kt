@@ -20,6 +20,7 @@ object TcpClientTest {
         val clientTask = TcpClientTask(serverAddress = AddressWithPort(localAddress, TcpServerTest.BIND_PORT))
         delay(200)
         val clientManager = clientTask.defaultClientManager().defaultServerManager()
+        delay(200)
         clientTask.startTask()
         coroutineScope {
             val stateJob = launch {

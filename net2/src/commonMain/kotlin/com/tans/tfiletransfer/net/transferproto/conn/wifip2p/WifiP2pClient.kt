@@ -10,6 +10,7 @@ import com.tans.tfiletransfer.net.socket.ext.client.requestSimplify
 import com.tans.tfiletransfer.net.socket.ext.defaultServerManager
 import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
 import com.tans.tfiletransfer.net.socket.tcp.TcpClientTask
+import com.tans.tfiletransfer.net.socket.toAddress
 import com.tans.tfiletransfer.net.transferproto.TransferException
 import com.tans.tfiletransfer.net.transferproto.TransferProtoConstant
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pDataType
@@ -17,7 +18,6 @@ import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandsh
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandshakeReq
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandshakeRsp
 import io.ktor.network.sockets.InetSocketAddress
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class WifiP2pClient(
@@ -56,7 +56,7 @@ class WifiP2pClient(
             error(TransferException("Handshake fail. ${e.message}", e))
             return
         }
-        val localAddress = (clientTask.socket()?.localAddress as? InetSocketAddress)?.hostname
+        val localAddress = (clientTask.socket()?.localAddress as? InetSocketAddress)?.toAddress()
         if (localAddress == null) {
             clientTask.stopTask()
             error(TransferException("Can't get local address."))

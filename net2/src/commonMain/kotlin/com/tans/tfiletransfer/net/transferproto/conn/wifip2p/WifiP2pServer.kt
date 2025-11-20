@@ -17,7 +17,6 @@ import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pDataTy
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandshake
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandshakeReq
 import com.tans.tfiletransfer.net.transferproto.conn.wifip2p.model.WifiP2pHandshakeRsp
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

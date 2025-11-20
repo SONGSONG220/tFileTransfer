@@ -7,6 +7,7 @@ import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
+import com.tans.tfiletransfer.net.socket.toAddress
 import com.tans.tfiletransfer.net.socket.udp.IUdpTask
 import io.ktor.network.sockets.ABoundSocket
 import io.ktor.network.sockets.InetSocketAddress
@@ -29,7 +30,7 @@ internal class DefaultUdpServerManager(
                         if (socket != null) {
                             val localAddress = (socket.localAddress as InetSocketAddress).let {
                                 AddressWithPort(
-                                    address = it.hostname,
+                                    address = it.toAddress(),
                                     port = it.port
                                 )
                             }

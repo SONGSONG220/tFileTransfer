@@ -8,6 +8,7 @@ import com.tans.tfiletransfer.net.socket.PackageData
 import com.tans.tfiletransfer.net.socket.PackageDataWithAddress
 import com.tans.tfiletransfer.net.socket.SocketException
 import com.tans.tfiletransfer.net.socket.buffer.BufferPool
+import com.tans.tfiletransfer.net.socket.toAddress
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ASocket
 import io.ktor.network.sockets.Datagram
@@ -113,7 +114,7 @@ class UdpTask(
                 for (datagram in readChannel) {
                     val remoteAddressInet = datagram.address as InetSocketAddress
                     val remoteAddress = AddressWithPort(
-                        address = remoteAddressInet.hostname,
+                        address = remoteAddressInet.toAddress(),
                         port = remoteAddressInet.port
                     )
                     val pkt = datagram.packet

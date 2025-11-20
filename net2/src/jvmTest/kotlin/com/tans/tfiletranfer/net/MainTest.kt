@@ -9,10 +9,10 @@ object MainTest {
     fun main(args: Array<String>) {
         runBlocking {
             launch {
-                WifiP2pServerTest.run()
+                UdpServerTest.run()
             }
             launch {
-                WifiP2pClientTest.run()
+                UdpClientTest.run()
             }
         }
     }

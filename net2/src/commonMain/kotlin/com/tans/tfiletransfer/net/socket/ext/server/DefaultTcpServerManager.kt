@@ -7,6 +7,7 @@ import com.tans.tfiletransfer.net.socket.ext.Connection
 import com.tans.tfiletransfer.net.socket.ext.converter.DefaultConverterFactory
 import com.tans.tfiletransfer.net.socket.ext.converter.IConverterFactory
 import com.tans.tfiletransfer.net.socket.tcp.ITcpClientTask
+import com.tans.tfiletransfer.net.socket.toAddress
 import io.ktor.network.sockets.InetSocketAddress
 import kotlinx.coroutines.launch
 
@@ -27,13 +28,13 @@ internal class DefaultTcpServerManager(
                         if (socket != null) {
                             val localAddress = (socket.localAddress as InetSocketAddress).let {
                                 AddressWithPort(
-                                    address = it.hostname,
+                                    address = it.toAddress(),
                                     port = it.port
                                 )
                             }
                             val remoteAddress = (socket.remoteAddress as InetSocketAddress).let {
                                 AddressWithPort(
-                                    address = it.hostname,
+                                    address = it.toAddress(),
                                     port = it.port
                                 )
                             }

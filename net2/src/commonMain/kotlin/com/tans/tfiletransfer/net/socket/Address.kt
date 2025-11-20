@@ -1,5 +1,6 @@
 package com.tans.tfiletransfer.net.socket
 
+import io.ktor.network.sockets.InetSocketAddress
 import okio.Buffer
 import kotlin.experimental.and
 
@@ -58,3 +59,16 @@ fun ByteArray.toAddress(): Address {
 fun Address.toInt(): Int = this.toBytes().toInt()
 
 fun Int.toAddress(): Address = this.toBytes().toAddress()
+
+fun InetSocketAddress.toAddress(): Address {
+    val bytes = this.resolveAddress()
+    return if (bytes == null) {
+        hostname
+    } else {
+        if (bytes.size != 4) {
+            error("Wrong address.")
+        } else {
+            bytes.toAddress()
+        }
+    }
+}

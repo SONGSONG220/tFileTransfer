@@ -31,10 +31,10 @@ class FilesDownloader(
             return
         }
 
-        for (toDownloadFile in toDownloadRemoteFiles) {
+        for (toDownloadRemoteFile in toDownloadRemoteFiles) {
             val downloader = FileDownloader(
                 downloadDir = downloadDir,
-                toDownloadRemoteFile = toDownloadFile,
+                toDownloadRemoteFile = toDownloadRemoteFile,
                 senderAddress = senderAddress,
                 maxConnection = maxConnection,
                 minDownloadFileSegmentSize = minDownloadFileSegmentSize
@@ -43,7 +43,7 @@ class FilesDownloader(
             try {
                 val downloaderState = downloader.waitTaskFinished()
                 if (downloaderState is TaskState.Error) {
-                    error(TransferException("Download file $toDownloadFile failed. Cause: ${downloaderState.throwable?.message}", downloaderState.throwable))
+                    error(TransferException("Download file $toDownloadRemoteFile failed. Cause: ${downloaderState.throwable?.message}", downloaderState.throwable))
                     return
                 }
             } catch (e: Throwable) { // Files downloader canceled

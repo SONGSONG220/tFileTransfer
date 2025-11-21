@@ -82,9 +82,9 @@ class FileDownloader internal constructor(
                     if (s is TaskState.Error) {
                         error(TransferException("Segment downloader task error. Cause: ${s.throwable?.message}", s.throwable))
                         segmentDownloaderTaskError(task, s.throwable)
-                        true
-                    } else {
                         false
+                    } else {
+                        true
                     }
                 } catch (e: Throwable) { // File downloader canceled.
                     task.error(TransferException("File downloader canceled.", e))
@@ -93,7 +93,7 @@ class FileDownloader internal constructor(
             }
         }
         val allSuccess = try {
-            segmentDownloaderJobs.all { it.await() }
+            !segmentDownloaderJobs.any { !it.await() }
         } catch (_: Throwable) { // canceled.
             false
         }
@@ -115,6 +115,7 @@ class FileDownloader internal constructor(
                 NetLog.e(TAG, "Failed to delete downloading file. Cause: ${e.message}", e)
             }
             NetLog.e(TAG, "Download file ${toDownloadRemoteFile.name} from $senderAddress failed.")
+            error(TransferException("Download file ${toDownloadRemoteFile.name} from $senderAddress failed."))
         }
     }
 

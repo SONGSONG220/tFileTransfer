@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import okio.FileHandle
-import java.io.File
 
 class FileSegmentDownloader internal constructor(
     val downloadingFileHandle: FileHandle,
@@ -111,8 +110,8 @@ class FileSegmentDownloader internal constructor(
         NetLog.d(TAG, "Download file segment success. Start: $segmentStart, End: $segmentEnd, File: $toDownloadRemoteFile")
         runCatching {
             clientServerManager.requestSimplify<Unit, Unit>(
-                requestType = FileTransferDataType.DownloadFileSegmentReq.type,
-                responseType = FileTransferDataType.DownloadFileSegmentRsp.type,
+                requestType = FileTransferDataType.DownloadFileSegmentEndReq.type,
+                responseType = FileTransferDataType.DownloadFileSegmentEndRsp.type,
                 request = Unit
             )
         }

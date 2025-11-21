@@ -59,21 +59,30 @@ class FileSegmentDownloader internal constructor(
         }
         val clientServerManager = downloaderTask.defaultClientManager().defaultServerManager()
         val downloadedSize = atomic(0L)
+        val finished = atomic(false)
         val finishChannel = Channel<Unit>(1)
         val downloadServer = server<PackageData, Unit>(
             requestType = FileTransferDataType.SendFileBufferReq.type,
             responseType = FileTransferDataType.SendFileBufferRsp.type,
         ) { _, _, request, isNew ->
             if (isNew) {
+                if (finished.value) return@server Unit
                 val buffer = request.data
-                val writeStart = downloadedSize.value + segmentStart
+                val remain = segmentEnd - segmentStart - downloadedSize.value
+                val writeLen = if (remain <= 0L) 0 else minOf(remain, buffer.contentSize.toLong()).toInt()
                 try {
-                    downloadingFileHandle.write(writeStart, buffer.array, 0, buffer.contentSize)
-                    val size = downloadedSize.addAndGet(buffer.contentSize.toLong())
-                    downloaderTask.bufferPool.put(buffer)
-                    if (size >= segmentEnd - segmentStart) {
-                        finishChannel.send(Unit)
+                    if (writeLen > 0) {
+                        val writeStart = downloadedSize.value + segmentStart
+                        downloadingFileHandle.write(writeStart, buffer.array, 0, writeLen)
+                        val size = downloadedSize.addAndGet(writeLen.toLong())
+                        if (size >= segmentEnd - segmentStart) {
+                            finished.getAndSet(true)
+                            finishChannel.send(Unit)
+                        }
+                    } else {
+                        finished.getAndSet(true)
                     }
+                    downloaderTask.bufferPool.put(buffer)
                     Unit
                 } catch (e: Throwable) {
                     error(TransferException("Write file fail: ${e.message}", e))

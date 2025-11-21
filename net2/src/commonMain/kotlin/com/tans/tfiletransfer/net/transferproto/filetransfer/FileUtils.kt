@@ -17,7 +17,7 @@ fun calculateFileSegmentRanges(
     val fileSize = file.size
     if (fileSize <= 0L) return emptyList()
 
-    val minSeg = minFileSegmentSize
+    val minSeg = if (minFileSegmentSize <= 0L) fileSize else minFileSegmentSize
     val maxSegs = maxSegmentCount.coerceAtLeast(1)
 
     val segCount = when {

@@ -1,12 +1,12 @@
 package com.tans.tfiletransfer.net.transferproto.filetransfer.model
 
 enum class FileTransferDataType(val type: Int) {
-    DownloadReq(0),
-    DownloadRsp(1),
-    SendReq(2),
-    SendRsp(3),
-    FinishedReq(4),
-    FinishedRsp(6),
+    DownloadFileSegmentReq(0),
+    DownloadFileSegmentRsp(1),
+    SendFileBufferReq(2),
+    SendFileBufferRsp(3),
+    DownloadFileSegmentEndReq(4),
+    DownloadFileSegmentEndRsp(6),
     ErrorReq(7),
     ErrorRsp(8)
 }

@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class DownloadReq(
+data class DownloadFileSegmentReq(
     @SerialName("file")
     val file: ExplorerFile,
     @SerialName("start")

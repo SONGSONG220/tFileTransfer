@@ -30,7 +30,7 @@ class FileDownloader internal constructor(
     override suspend fun onStartTask() {
         val downloadDirPath = try {
             val downloadDirPath = downloadDir.toPath()
-            if (fileSystem.exists(downloadDirPath)) {
+            if (!fileSystem.exists(downloadDirPath)) {
                 fileSystem.createDirectories(downloadDirPath)
             }
             downloadDirPath

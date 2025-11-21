@@ -1,19 +1,38 @@
 package com.tans.tfiletransfer.net.transferproto.filetransfer
 
 import com.tans.tfiletransfer.net.ITask
+import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.TaskState
+import com.tans.tfiletransfer.net.socket.Address
+import com.tans.tfiletransfer.net.socket.AddressWithPort
+import com.tans.tfiletransfer.net.socket.PackageData
+import com.tans.tfiletransfer.net.socket.ext.client.defaultClientManager
+import com.tans.tfiletransfer.net.socket.ext.client.requestSimplify
+import com.tans.tfiletransfer.net.socket.ext.defaultServerManager
+import com.tans.tfiletransfer.net.socket.ext.server.server
+import com.tans.tfiletransfer.net.socket.tcp.TcpClientTask
+import com.tans.tfiletransfer.net.transferproto.TransferException
+import com.tans.tfiletransfer.net.transferproto.TransferProtoConstant
+import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExplorerFile
+import com.tans.tfiletransfer.net.transferproto.filetransfer.model.DownloadFileSegmentReq
+import com.tans.tfiletransfer.net.transferproto.filetransfer.model.FileTransferDataType
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import okio.FileHandle
+import java.io.File
 
 class FileSegmentDownloader internal constructor(
     val downloadingFileHandle: FileHandle,
     val segmentStart: Long,
     val segmentEnd: Long,
+    val toDownloadRemoteFile: ExplorerFile,
+    val senderAddress: Address,
 ) : ITask {
 
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
@@ -21,18 +40,96 @@ class FileSegmentDownloader internal constructor(
     override val stateUpdateMutex: Mutex = Mutex()
 
     override suspend fun onStartTask() {
-        TODO("Not yet implemented")
+
+        var retryTimes = 0
+        var downloaderTask: TcpClientTask
+        while (true) {
+            downloaderTask = TcpClientTask(serverAddress = AddressWithPort(senderAddress, TransferProtoConstant.FILE_TRANSFER_SERVER_PORT))
+            downloaderTask.startTask()
+            val state = downloaderTask.waitTaskConnectedOrError()
+            if (state is TaskState.Connected) {
+                break
+            }
+            if (retryTimes > MAX_CONNECTION_RETRY_TIMES) {
+                error(TransferException("Failed to connect to server. Retry times: $retryTimes", (state as? TaskState.Error)?.throwable))
+                return
+            } else {
+                NetLog.e(TAG, "Failed to connect to server. Retry times: $retryTimes", (state as? TaskState.Error)?.throwable)
+            }
+            retryTimes ++
+        }
+        val clientServerManager = downloaderTask.defaultClientManager().defaultServerManager()
+        val downloadedSize = atomic(0L)
+        val finishChannel = Channel<Unit>(1)
+        val downloadServer = server<PackageData, Unit>(
+            requestType = FileTransferDataType.SendFileBufferReq.type,
+            responseType = FileTransferDataType.SendFileBufferRsp.type,
+        ) { _, _, request, isNew ->
+            if (isNew) {
+                val buffer = request.data
+                val writeStart = downloadedSize.value + segmentStart
+                try {
+                    downloadingFileHandle.write(writeStart, buffer.array, 0, buffer.contentSize)
+                    val size = downloadedSize.addAndGet(buffer.contentSize.toLong())
+                    downloaderTask.bufferPool.put(buffer)
+                    if (size >= segmentEnd - segmentStart) {
+                        finishChannel.send(Unit)
+                    }
+                    Unit
+                } catch (e: Throwable) {
+                    error(TransferException("Write file fail: ${e.message}", e))
+                    downloaderTask.stopTask()
+                    null
+                }
+            } else {
+                Unit
+            }
+        }
+        clientServerManager.registerServer(downloadServer)
+        try {
+            clientServerManager.requestSimplify<DownloadFileSegmentReq, Unit>(
+                requestType = FileTransferDataType.DownloadFileSegmentReq.type,
+                responseType = FileTransferDataType.DownloadFileSegmentRsp.type,
+                request = DownloadFileSegmentReq(
+                    file = toDownloadRemoteFile,
+                    start = segmentStart,
+                    end = segmentEnd,
+                ),
+            )
+        } catch (e: Throwable) {
+            error(TransferException("Request download file segment failed. Start: $segmentStart, End: $segmentEnd, File: $toDownloadRemoteFile", e))
+            downloaderTask.stopTask()
+            return
+        }
+        try {
+            finishChannel.receive()
+        } catch (e: Throwable) { // canceled
+            NetLog.e(TAG, "Download file segment canceled. Start: $segmentStart, End: $segmentEnd, File: $toDownloadRemoteFile", e)
+            downloaderTask.stopTask()
+            return
+        }
+        NetLog.d(TAG, "Download file segment success. Start: $segmentStart, End: $segmentEnd, File: $toDownloadRemoteFile")
+        runCatching {
+            clientServerManager.requestSimplify<Unit, Unit>(
+                requestType = FileTransferDataType.DownloadFileSegmentReq.type,
+                responseType = FileTransferDataType.DownloadFileSegmentRsp.type,
+                request = Unit
+            )
+        }
+        downloaderTask.stopTask()
+        stopTask("Download file segment success.")
     }
 
     override suspend fun onStopTask(cause: String?) {
-        TODO("Not yet implemented")
+
     }
 
     override suspend fun onError(throwable: Throwable?) {
-        TODO("Not yet implemented")
+        NetLog.e(TAG, throwable?.message ?: "Unknown error", throwable)
     }
 
     companion object {
         private const val TAG = "FileSegmentDownloader"
+        private const val MAX_CONNECTION_RETRY_TIMES = 2
     }
 }

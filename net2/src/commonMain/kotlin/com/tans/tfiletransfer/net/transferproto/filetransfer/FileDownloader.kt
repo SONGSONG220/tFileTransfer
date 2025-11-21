@@ -64,7 +64,7 @@ class FileDownloader internal constructor(
         }
         val segmentRanges = calculateFileSegmentRanges(toDownloadRemoteFile, minDownloadFileSegmentSize, maxConnection)
         val segmentDownloaderTasks = segmentRanges.map { (start, endExclusive) ->
-            FileSegmentDownloader(downloadingFileHandle, start, endExclusive)
+            FileSegmentDownloader(downloadingFileHandle, start, endExclusive, toDownloadRemoteFile, senderAddress)
         }
         fun segmentDownloaderTaskError(errorTask: FileSegmentDownloader, e: Throwable?) {
             for (task in segmentDownloaderTasks) {

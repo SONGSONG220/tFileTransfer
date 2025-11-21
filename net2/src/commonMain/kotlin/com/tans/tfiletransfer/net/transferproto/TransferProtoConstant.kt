@@ -18,12 +18,12 @@ object TransferProtoConstant {
     /**
      * File Explore
      */
-    const val FILE_EXPLORE_PORT = 2000
+    const val FILE_EXPLORE_SERVER_PORT = 2000
 
     /**
      * File Transfer
      */
-    const val FILE_TRANSFER_PORT = 2001
+    const val FILE_TRANSFER_SERVER_PORT = 2001
 
     /**
      * QR code scan connection

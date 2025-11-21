@@ -4,7 +4,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class HandshakeRsp(
+data class ExploreHandshakeReq(
+    @SerialName("version")
+    val version: Int,
     @SerialName("fileSeparator")
     val fileSeparator: String
 )

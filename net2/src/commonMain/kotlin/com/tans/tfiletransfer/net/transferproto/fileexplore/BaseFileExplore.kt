@@ -15,6 +15,7 @@ import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExploreDirReq
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExploreDirRsp
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExplorerDir
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExplorerFile
+import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExploreHandshake
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.SendFilesReq
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.SendFilesRsp
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.SendMsgReq
@@ -41,7 +42,11 @@ abstract class BaseFileExplore : ITask {
     abstract val tag: String
 
     private val remoteMessageFlow: MutableSharedFlow<Pair<String, Long>> by lazy {
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    }
+
+    protected val exploreHandshakeFlow: MutableStateFlow<ExploreHandshake?> by lazy {
+        MutableStateFlow(null)
     }
 
     protected val exploreDirServer: IServer<ExploreDirReq, ExploreDirRsp> by lazy {
@@ -95,13 +100,28 @@ abstract class BaseFileExplore : ITask {
         server<SendMsgReq, Unit>(
             requestType = FileExploreDataType.SendMsgReq.type,
             responseType = FileExploreDataType.SendMsgRsp.type
-        ) { _, _, request, _ ->
-            NetLog.d(tag, "Remote send message: ${request.msg}")
-            val isSuccess = remoteMessageFlow.tryEmit(request.msg to request.sendTime)
-            if (!isSuccess) {
-                NetLog.e(tag, "Failed to emit remote message: ${request.msg}")
+        ) { _, _, request, isNewRequest ->
+            if (isNewRequest) {
+                NetLog.d(tag, "Remote send message: ${request.msg}")
+                val isSuccess = remoteMessageFlow.tryEmit(request.msg to request.sendTime)
+                if (!isSuccess) {
+                    NetLog.e(tag, "Failed to emit remote message: ${request.msg}")
+                }
             }
             Unit
+        }
+    }
+
+    suspend fun waitHandshakeOrNull(): ExploreHandshake? {
+        val state = waitTaskConnectedOrError()
+        return if (state is TaskState.Connected) {
+            exploreHandshakeFlow.value.apply {
+                if (this == null) {
+                    error(TransferException("Connected, but handshake is null."))
+                }
+            }
+        } else {
+            null
         }
     }
 

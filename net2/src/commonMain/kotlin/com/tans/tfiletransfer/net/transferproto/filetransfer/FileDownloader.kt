@@ -54,6 +54,11 @@ class FileDownloader internal constructor(
             }
             downloadingFileHandle
         } catch (e: Throwable) {
+            try {
+                fileSystem.delete(downloadingFilePath)
+            } catch (e: Throwable) {
+                NetLog.e(TAG, "Failed to delete downloading file. Cause: ${e.message}", e)
+            }
             error(TransferException("Failed to resize downloading file. Cause: ${e.message}", e))
             return
         }
@@ -100,8 +105,9 @@ class FileDownloader internal constructor(
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Failed to rename downloading file. Cause: ${e.message}", e)
             }
-            NetLog.d(TAG, "Download file ${toDownloadRemoteFile.name} from $senderAddress success.")
-            stopTask("Download file ${toDownloadRemoteFile.name} from $senderAddress success.")
+            val msg = "Download file ${toDownloadRemoteFile.name} from $senderAddress success."
+            NetLog.d(TAG, msg)
+            stopTask(msg)
         } else {
             try {
                 fileSystem.delete(downloadingFilePath)

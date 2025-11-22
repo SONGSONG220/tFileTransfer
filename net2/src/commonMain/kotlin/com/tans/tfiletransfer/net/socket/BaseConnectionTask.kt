@@ -23,7 +23,7 @@ abstract class BaseConnectionTask(
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val stateUpdateMutex: Mutex = Mutex()
 
-    open val tag = "BaseConnectionTask"
+    abstract val tag: String
 
     override suspend fun onStartTask() {
         if (checkIdle) {

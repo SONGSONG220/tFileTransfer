@@ -118,9 +118,9 @@ class FileSegmentDownloader internal constructor(
         }
         NetLog.d(TAG, "Download file segment success. Start: $segmentStart, End: $segmentEnd, File: $toDownloadRemoteFile")
         runCatching {
-            clientServerManager.requestSimplify<Unit, Unit>(
+            // No reply
+            clientServerManager.requestSimplify<Unit>(
                 requestType = FileTransferDataType.DownloadFileSegmentEndReq.type,
-                responseType = FileTransferDataType.DownloadFileSegmentEndRsp.type,
                 request = Unit
             )
         }

@@ -18,6 +18,7 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.utils.io.core.readAvailable
 import io.ktor.utils.io.core.remaining
 import io.ktor.utils.io.core.writeFully
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.BufferOverflow
@@ -33,20 +34,20 @@ class UdpTask(
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : BaseConnectionTask(readWriteIdleLimitInMillis), IUdpTask {
 
-    private val selector = SelectorManager(Dispatchers.IO)
-
     private val pktReadChannel: MutableSharedFlow<PackageDataWithAddress> = MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
 
     private val pktWriteChannel: Channel<PackageDataWithAddress> = Channel(10)
 
     private var socket: ASocket? = null
+    private var selectorManager: SelectorManager? = null
 
     override val tag: String = TAG
 
     override suspend fun onStartTask() {
         super.onStartTask()
+        val selectorManager = SelectorManager(Dispatchers.IO)
         try {
-            val socket = aSocket(selector)
+            val socket = aSocket(selectorManager)
                 .udp()
                 .let {
                     when (connectionType) {
@@ -61,24 +62,27 @@ class UdpTask(
                     }
                 }
             this.socket = socket
+            this.selectorManager = selectorManager
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
                     this.socket = null
+                    this.selectorManager = null
                     runCatching {
                         socket.close()
                     }
+                    selectorManager.close()
                 },
                 success = {
                     NetLog.d(TAG, "Udp connect success: $connectionType")
-                    this.socket = socket
                     startRead(socket)
                     startWrite(socket)
                 }
             )
 
         } catch (e: Throwable) {
+            selectorManager.close()
             error(SocketException("Connection fail: ${e.message}", e))
         }
     }
@@ -99,8 +103,13 @@ class UdpTask(
 
     override suspend fun writePktData(pktDataWithAddress: PackageDataWithAddress): Boolean {
         return if (currentState() == TaskState.Connected) {
-            pktWriteChannel.send(pktDataWithAddress)
-            true
+            try {
+                pktWriteChannel.send(pktDataWithAddress)
+                true
+            } catch (e: Throwable) {
+                NetLog.e(TAG, "Write channel error: ${e.message}", e)
+                false
+            }
         } else {
             false
         }
@@ -145,7 +154,7 @@ class UdpTask(
     }
 
     private fun startWrite(socket: DatagramReadWriteChannel) {
-        coroutineScope.launch {
+        coroutineScope.launch(start = CoroutineStart.ATOMIC) {
             try {
                 val writeChannel = socket.outgoing
                 for (toWrite in pktWriteChannel) {
@@ -158,18 +167,23 @@ class UdpTask(
                     bufferPool.put(toWrite.pkt.data)
                     resetLastReadWriteTime()
                 }
+                NetLog.d(TAG, "Write channel closed.")
             } catch (e: Throwable) {
                 error(SocketException("Write channel error: ${e.message}", e))
             }
+            this@UdpTask.socket?.let {
+                runCatching {
+                    it.close()
+                }
+                NetLog.d(TAG, "Socket closed.")
+            } ?: NetLog.e(TAG, "Socket is null.")
+            this@UdpTask.socket = null
+            this@UdpTask.selectorManager?.close()
+            this@UdpTask.selectorManager = null
         }
     }
 
     private fun release() {
-        runCatching {
-            socket?.close()
-        }
-        socket = null
-        selector.close()
         pktWriteChannel.close()
     }
 

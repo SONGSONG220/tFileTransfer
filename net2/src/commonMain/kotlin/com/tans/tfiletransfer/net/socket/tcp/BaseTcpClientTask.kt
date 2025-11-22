@@ -15,6 +15,7 @@ import io.ktor.utils.io.readLong
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeInt
 import io.ktor.utils.io.writeLong
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,7 @@ abstract class BaseTcpClientTask(
     readWriteIdleLimitInMillis: Long = Long.MAX_VALUE
 ) : BaseConnectionTask(readWriteIdleLimitInMillis),ITcpClientTask {
 
-    abstract val selectorManager: SelectorManager?
+    protected var selectorManager: SelectorManager? = null
     protected val pktReadChannel: MutableSharedFlow<PackageData> = MutableSharedFlow(extraBufferCapacity = 10, onBufferOverflow = BufferOverflow.SUSPEND)
     protected val pktWriteChannel: Channel<PackageData> = Channel(10)
     protected var socket: Socket? = null
@@ -46,8 +47,13 @@ abstract class BaseTcpClientTask(
 
     override suspend fun writePktData(pkt: PackageData): Boolean {
         return if (currentState() == TaskState.Connected) {
-            pktWriteChannel.send(pkt)
-            true
+            try {
+                pktWriteChannel.send(pkt)
+                true
+            } catch (e: Throwable) {
+                NetLog.e(tag, "Write channel error: ${e.message}", e)
+                false
+            }
         } else {
             false
         }
@@ -81,7 +87,7 @@ abstract class BaseTcpClientTask(
     }
 
     protected fun startWrite(socket: Socket) {
-        coroutineScope.launch {
+        coroutineScope.launch(start = CoroutineStart.ATOMIC) {
             try {
                 val writeChannel = socket.openWriteChannel(false)
                 for (pkt in pktWriteChannel) {
@@ -94,18 +100,23 @@ abstract class BaseTcpClientTask(
                     bufferPool.put(pkt.data)
                     resetLastReadWriteTime()
                 }
+                NetLog.d(tag, "Write channel closed.")
             } catch (e: Throwable) {
                 error(SocketException("Write channel error: ${e.message}", e))
             }
+            this@BaseTcpClientTask.socket?.let {
+                runCatching {
+                    it.close()
+                }
+                NetLog.d(tag, "Socket closed.")
+            } ?: NetLog.e(tag, "Socket is null.")
+            this@BaseTcpClientTask.socket = null
+            this@BaseTcpClientTask.selectorManager?.close()
+            this@BaseTcpClientTask.selectorManager = null
         }
     }
 
     private fun release() {
-        runCatching {
-            socket?.close()
-        }
-        socket = null
-        selectorManager?.close()
         pktWriteChannel.close()
     }
 }

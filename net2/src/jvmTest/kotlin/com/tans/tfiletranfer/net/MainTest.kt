@@ -8,13 +8,13 @@ object MainTest {
     @JvmStatic
     fun main(args: Array<String>) {
         runBlocking {
-//            launch {
-//                UdpServerTest.run()
-//            }
-//            launch {
-//                UdpClientTest.run()
-//            }
-            FileExploreIntegrationTest.run()
+            launch {
+                UdpServerTest.run()
+            }
+            launch {
+                UdpClientTest.run()
+            }
+//            FileExploreIntegrationTest.run()
         }
     }
 }

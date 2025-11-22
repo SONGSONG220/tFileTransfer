@@ -17,10 +17,10 @@ class TcpClientTask(
 ) : BaseTcpClientTask(readWriteIdleLimitInMillis) {
 
     override val tag: String = TAG
-    override val selectorManager: SelectorManager = SelectorManager(Dispatchers.IO)
 
     override suspend fun onStartTask() {
         super.onStartTask()
+        val selectorManager = SelectorManager(Dispatchers.IO)
         try {
             val socket = aSocket(selectorManager)
                 .tcp()
@@ -28,14 +28,17 @@ class TcpClientTask(
                     reuseAddress = true
                 }
             this.socket = socket
+            this.selectorManager = selectorManager
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
                 fail = {
                     this.socket = null
+                    this.selectorManager = null
                     runCatching {
                         socket.close()
                     }
+                    selectorManager.close()
                 },
                 success = {
                     NetLog.d(TAG, "Connect to server $serverAddress success.")
@@ -44,6 +47,7 @@ class TcpClientTask(
                 }
             )
         } catch (e: Throwable) {
+            selectorManager.close()
             error(SocketException("Connect to server $serverAddress fail: ${e.message}", e))
         }
 

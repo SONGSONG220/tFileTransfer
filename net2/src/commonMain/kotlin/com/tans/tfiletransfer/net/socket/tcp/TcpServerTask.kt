@@ -29,13 +29,14 @@ class TcpServerTask(
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
 
-    private val selectorManager = SelectorManager(Dispatchers.IO)
+    private var selectorManager: SelectorManager? = null
     private var serverSocket: ServerSocket? = null
 
     private val clientTaskChannel: Channel<ClientTask> = Channel(10)
     private val clientTasks = AtomicList<ClientTask>()
 
     override suspend fun onStartTask() {
+        val selectorManager = SelectorManager(Dispatchers.IO)
         try {
             val serverSocket = aSocket(selectorManager)
                 .tcp()
@@ -43,6 +44,7 @@ class TcpServerTask(
                     reuseAddress = true
                 }
             this.serverSocket = serverSocket
+            this.selectorManager = selectorManager
             updateStateExpect(
                 expect = TaskState.Connecting,
                 update = TaskState.Connected,
@@ -51,12 +53,15 @@ class TcpServerTask(
                         serverSocket.close()
                     }
                     this.serverSocket = null
+                    selectorManager.close()
+                    this.selectorManager = null
                 },
                 success = {
                     NetLog.d(TAG, "Bind address $bindAddress success.")
                     waitingClients(serverSocket)
                 })
         } catch (e: Throwable) {
+            selectorManager.close()
             error(SocketException("Bind address $bindAddress fail.", e))
         }
     }
@@ -73,12 +78,13 @@ class TcpServerTask(
         release()
     }
 
-    private suspend fun release() {
+    private fun release() {
         runCatching {
             serverSocket?.close()
         }
         serverSocket = null
-        selectorManager.close()
+        selectorManager?.close()
+        selectorManager = null
         clientTaskChannel.close()
         for (t in clientTasks.snapshot) {
             t.stopTask()
@@ -115,7 +121,6 @@ class TcpServerTask(
     ) : BaseTcpClientTask(this@TcpServerTask.readWriteIdleLimitInMillis) {
 
         override val bufferPool: BufferPool = this@TcpServerTask.bufferPool
-        override val selectorManager: SelectorManager? = null
         override val tag: String = CLIENT_TAG
 
         override suspend fun onStartTask() {

@@ -15,7 +15,7 @@ import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.DatagramReadWriteChannel
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
-import io.ktor.utils.io.core.readAvailable
+import io.ktor.utils.io.core.readFully
 import io.ktor.utils.io.core.remaining
 import io.ktor.utils.io.core.writeFully
 import kotlinx.coroutines.CoroutineStart
@@ -134,7 +134,7 @@ class UdpTask(
                     val dataLen = pktLen - 4 - 8
                     val data = bufferPool.get(dataLen)
                     data.contentSize = dataLen
-                    pkt.readAvailable(buffer = data.array, offset = 0, length = dataLen)
+                    pkt.readFully(out = data.array, offset = 0, length = dataLen)
                     pktReadChannel.emit(
                         PackageDataWithAddress(
                             pkt = PackageData(

@@ -42,32 +42,32 @@ class FileSegmentSender(
         var currentBufferSize = DEFAULT_SEND_BUFFER_SIZE
         try {
             while (offset < end) {
-                val remain = (end - offset).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
-                val bufSize = minOf(remain, currentBufferSize)
-                val buffer: Buffer = serverClientManager.connectionTask.bufferPool.get(bufSize)
-                val readLen = sendingFileHandle.read(offset, buffer.array, 0, bufSize)
-                if (readLen <= 0) {
-                    break
-                }
-                buffer.contentSize = readLen
                 try {
-                    val cost = measureTime {
+                    val remain = (end - offset).coerceAtMost(Int.MAX_VALUE.toLong())
+                    val bufSize = minOf(remain, currentBufferSize.toLong()).toInt()
+                    val buffer: Buffer = serverClientManager.connectionTask.bufferPool.get(bufSize)
+                    val readLen = sendingFileHandle.read(offset, buffer.array, 0, bufSize)
+                    buffer.contentSize = readLen
+                    if (readLen <= 0) {
+                        break
+                    }
+                    val timeCost = measureTime {
                         serverClientManager.requestSimplify<Buffer, Unit>(
                             requestType = FileTransferDataType.SendFileBufferReq.type,
                             request = buffer,
                             responseType = FileTransferDataType.SendFileBufferRsp.type
                         )
                     }.inWholeMilliseconds
-                    val nextSize = ((readLen.toLong() * TARGET_SEND_DURATION_MS) / cost).toInt()
+                    val nextSize = ((readLen.toLong() * TARGET_SEND_DURATION_MS) / timeCost).toInt()
                     currentBufferSize = nextSize
                         .coerceAtLeast(MIN_SEND_BUFFER_SIZE)
                         .coerceAtMost(MAX_SEND_BUFFER_SIZE)
+                    offset += readLen
+                    sendCallback(readLen, offset - start)
                 } catch (e: Throwable) {
                     error(TransferException("Send file buffer failed: ${e.message}", e))
                     return
                 }
-                offset += readLen
-                sendCallback(readLen, offset - start)
             }
         } catch (e: Throwable) {
             error(TransferException("File segment sender canceled.", e))
@@ -91,7 +91,8 @@ class FileSegmentSender(
         private const val MIN_SEND_BUFFER_SIZE = 512
         // 3 M
         private const val MAX_SEND_BUFFER_SIZE = 3 * 1024 * 1024
-        private const val TARGET_SEND_DURATION_MS = 50
+
+        private const val TARGET_SEND_DURATION_MS = 200L
     }
 
 }

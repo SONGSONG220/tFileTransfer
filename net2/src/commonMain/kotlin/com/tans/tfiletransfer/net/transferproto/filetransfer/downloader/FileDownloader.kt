@@ -1,4 +1,4 @@
-package com.tans.tfiletransfer.net.transferproto.filetransfer
+package com.tans.tfiletransfer.net.transferproto.filetransfer.downloader
 
 import com.tans.tfiletransfer.net.ITask
 import com.tans.tfiletransfer.net.NetLog
@@ -6,10 +6,15 @@ import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.Address
 import com.tans.tfiletransfer.net.transferproto.TransferException
 import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExplorerFile
+import com.tans.tfiletransfer.net.transferproto.filetransfer.calculateFileSegmentRanges
+import com.tans.tfiletransfer.net.transferproto.filetransfer.fileSystem
+import com.tans.tfiletransfer.net.transferproto.filetransfer.resolveUniqueLocalFilePath
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -26,6 +31,8 @@ class FileDownloader internal constructor(
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
+    private val downloadedSize = atomic(0L)
+    private val downloadedSizeFlow: MutableStateFlow<Long> = MutableStateFlow(0L)
 
     override suspend fun onStartTask() {
         val downloadDirPath = try {
@@ -39,7 +46,11 @@ class FileDownloader internal constructor(
             return
         }
         val downloadingFilePath = try {
-            resolveUniqueLocalFilePath(downloadDirPath, "${toDownloadRemoteFile.name}.downloading", true)
+            resolveUniqueLocalFilePath(
+                downloadDirPath,
+                "${toDownloadRemoteFile.name}.downloading",
+                true
+            )
         } catch (e: Throwable) {
             error(TransferException("Failed to create downloading file. Cause: ${e.message}", e))
             return
@@ -62,9 +73,22 @@ class FileDownloader internal constructor(
             error(TransferException("Failed to resize downloading file. Cause: ${e.message}", e))
             return
         }
-        val segmentRanges = calculateFileSegmentRanges(toDownloadRemoteFile, minDownloadFileSegmentSize, maxConnection)
+        val segmentRanges = calculateFileSegmentRanges(
+            toDownloadRemoteFile,
+            minDownloadFileSegmentSize,
+            maxConnection
+        )
         val segmentDownloaderTasks = segmentRanges.map { (start, endExclusive) ->
-            FileSegmentDownloader(downloadingFileHandle, start, endExclusive, toDownloadRemoteFile, senderAddress)
+            FileSegmentDownloader(
+                downloadingFileHandle = downloadingFileHandle,
+                segmentStart = start,
+                segmentEnd = endExclusive,
+                toDownloadRemoteFile = toDownloadRemoteFile,
+                senderAddress = senderAddress
+            ) { thisTimeDownloadBufferSize, _ ->
+                downloadedSize.addAndGet(thisTimeDownloadBufferSize.toLong())
+                downloadedSizeFlow.value = downloadedSize.value
+            }
         }
         fun segmentDownloaderTaskError(errorTask: FileSegmentDownloader, e: Throwable?) {
             for (task in segmentDownloaderTasks) {
@@ -100,7 +124,8 @@ class FileDownloader internal constructor(
         downloadingFileHandle.close()
         if (allSuccess) {
             try {
-                val toRenamePath = resolveUniqueLocalFilePath(downloadDirPath, toDownloadRemoteFile.name, false)
+                val toRenamePath =
+                    resolveUniqueLocalFilePath(downloadDirPath, toDownloadRemoteFile.name, false)
                 fileSystem.atomicMove(downloadingFilePath, toRenamePath)
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Failed to rename downloading file. Cause: ${e.message}", e)
@@ -126,6 +151,8 @@ class FileDownloader internal constructor(
     override suspend fun onError(throwable: Throwable?) {
         NetLog.e(TAG, throwable?.message ?: "Unknown error.", throwable)
     }
+
+    fun downloadedSize(): Flow<Long> = downloadedSizeFlow
 
     companion object {
         private const val TAG = "FileDownloader"

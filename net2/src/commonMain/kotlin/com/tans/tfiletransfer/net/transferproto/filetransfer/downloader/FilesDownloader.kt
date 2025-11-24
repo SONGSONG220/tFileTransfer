@@ -1,4 +1,4 @@
-package com.tans.tfiletransfer.net.transferproto.filetransfer
+package com.tans.tfiletransfer.net.transferproto.filetransfer.downloader
 
 import com.tans.tfiletransfer.net.ITask
 import com.tans.tfiletransfer.net.NetLog
@@ -25,6 +25,8 @@ class FilesDownloader(
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
 
+    private val downloadingFileTask: MutableStateFlow<FileDownloader?> = MutableStateFlow(null)
+
     override suspend fun onStartTask() {
         if (toDownloadRemoteFiles.isEmpty()) {
             error(TransferException("No file to download."))
@@ -40,6 +42,7 @@ class FilesDownloader(
                 minDownloadFileSegmentSize = minDownloadFileSegmentSize
             )
             downloader.startTask()
+            downloadingFileTask.value = downloader
             try {
                 val downloaderState = downloader.waitTaskFinished()
                 if (downloaderState is TaskState.Error) {

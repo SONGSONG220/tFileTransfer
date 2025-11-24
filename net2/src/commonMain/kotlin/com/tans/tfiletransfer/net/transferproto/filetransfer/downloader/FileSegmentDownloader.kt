@@ -1,4 +1,4 @@
-package com.tans.tfiletransfer.net.transferproto.filetransfer
+package com.tans.tfiletransfer.net.transferproto.filetransfer.downloader
 
 import com.tans.tfiletransfer.net.ITask
 import com.tans.tfiletransfer.net.NetLog
@@ -32,6 +32,7 @@ class FileSegmentDownloader internal constructor(
     val segmentEnd: Long,
     val toDownloadRemoteFile: ExplorerFile,
     val senderAddress: Address,
+    val downloadedCallback: (thisTimeDownloadBufferSize: Int, downloadedSize: Long) -> Unit
 ) : ITask {
 
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
@@ -75,6 +76,7 @@ class FileSegmentDownloader internal constructor(
                         val writeStart = downloadedSize.value + segmentStart
                         downloadingFileHandle.write(writeStart, buffer.array, 0, writeLen)
                         val size = downloadedSize.addAndGet(writeLen.toLong())
+                        downloadedCallback(writeLen, size)
                         if (size >= segmentEnd - segmentStart) {
                             finished.getAndSet(true)
                             finishChannel.send(Unit)

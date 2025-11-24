@@ -60,7 +60,9 @@ class FileDownloader internal constructor(
             try {
                 downloadingFileHandle.resize(toDownloadRemoteFile.size)
             } catch (e: Throwable) {
-                downloadingFileHandle.close()
+                runCatching {
+                    downloadingFileHandle.close()
+                }
                 throw e
             }
             downloadingFileHandle
@@ -121,7 +123,9 @@ class FileDownloader internal constructor(
         } catch (_: Throwable) { // canceled.
             false
         }
-        downloadingFileHandle.close()
+        runCatching {
+            downloadingFileHandle.close()
+        }
         if (allSuccess) {
             try {
                 val toRenamePath =

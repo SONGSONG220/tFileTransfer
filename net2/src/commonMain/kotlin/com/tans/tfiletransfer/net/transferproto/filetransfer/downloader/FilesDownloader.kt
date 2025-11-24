@@ -9,6 +9,7 @@ import com.tans.tfiletransfer.net.transferproto.fileexplore.model.ExplorerFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -64,6 +65,8 @@ class FilesDownloader(
     override suspend fun onError(throwable: Throwable?) {
         NetLog.e(TAG, throwable?.message ?: "Unknown error.", throwable)
     }
+
+    fun downloadingFileTask(): Flow<FileDownloader?> = downloadingFileTask
 
     companion object Companion {
         private const val TAG = "FilesDownloader"

@@ -86,6 +86,7 @@ abstract class BaseTcpClientTask(
         }
     }
 
+    @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
     protected fun startWrite(socket: Socket) {
         coroutineScope.launch(start = CoroutineStart.ATOMIC) {
             try {

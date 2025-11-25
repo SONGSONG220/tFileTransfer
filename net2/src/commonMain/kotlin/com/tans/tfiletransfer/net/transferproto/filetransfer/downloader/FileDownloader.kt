@@ -126,14 +126,13 @@ class FileDownloader internal constructor(
             downloadingFileHandle.close()
         }
         if (allSuccess) {
+            val toRenamePath = resolveUniqueLocalFilePath(downloadDirPath, toDownloadRemoteFile.name, false)
             try {
-                val toRenamePath =
-                    resolveUniqueLocalFilePath(downloadDirPath, toDownloadRemoteFile.name, false)
                 fileSystem.atomicMove(downloadingFilePath, toRenamePath)
             } catch (e: Throwable) {
                 NetLog.e(TAG, "Failed to rename downloading file. Cause: ${e.message}", e)
             }
-            val msg = "Download file ${toDownloadRemoteFile.name} from $senderAddress success."
+            val msg = "Download file ${toDownloadRemoteFile.name} $toRenamePath from $senderAddress success."
             NetLog.d(TAG, msg)
             stopTask(msg)
         } else {

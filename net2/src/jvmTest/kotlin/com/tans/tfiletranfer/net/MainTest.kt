@@ -2,7 +2,6 @@ package com.tans.tfiletranfer.net
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
 
 object MainTest {
 

@@ -41,6 +41,7 @@ object FileTransferIntegrationTest {
             toDownloadRemoteFiles = listOf(testMeta),
             senderAddress = localAddress,
             maxConnection = 8,
+            minDownloadFileSegmentSize = 5 * 1024 * 1024L
         ).withSpeedCalculator()
 
         coroutineScope {

@@ -61,7 +61,7 @@ class FilesSender(
         coroutineScope.launch {
             try {
                 for (clientTask in serverTask.clientChannel()) {
-                    launch {
+                    coroutineScope.launch {
                         val serverClientManager = clientTask
                             .defaultServerManager()
                             .defaultClientManager()
@@ -96,8 +96,8 @@ class FilesSender(
                             error(TransferException("Wrong download req $req, don't find target file."))
                             return@launch
                         }
-                        val key = keyValue.first
-                        val value = keyValue.second
+                        val senderFile = keyValue.first
+                        val channelAndReceivedSize = keyValue.second
                         val segmentSize = req.end - req.start
                         if (segmentSize <= 0L) {
                             clientTask.stopTask()
@@ -105,11 +105,11 @@ class FilesSender(
                             error(TransferException("Wrong download req $req, segment size must be greater than 0."))
                             return@launch
                         }
-                        val (channel, receivedReqSegmentSize) = value
+                        val (channel, receivedReqSegmentSize) = channelAndReceivedSize
 
                         try {
                             channel.send(req to serverClientManager)
-                            if (receivedReqSegmentSize.addAndGet(segmentSize) >= key.exploreFile.size) {
+                            if (receivedReqSegmentSize.addAndGet(segmentSize) >= senderFile.exploreFile.size) {
                                 channel.close()
                             }
                         } catch (_: Throwable) {

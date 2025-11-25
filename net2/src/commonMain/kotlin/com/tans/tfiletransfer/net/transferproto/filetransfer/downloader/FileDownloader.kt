@@ -88,8 +88,7 @@ class FileDownloader internal constructor(
                 toDownloadRemoteFile = toDownloadRemoteFile,
                 senderAddress = senderAddress
             ) { thisTimeDownloadBufferSize, _ ->
-                downloadedSize.addAndGet(thisTimeDownloadBufferSize.toLong())
-                downloadedSizeFlow.value = downloadedSize.value
+                downloadedSizeFlow.value = downloadedSize.addAndGet(thisTimeDownloadBufferSize.toLong())
             }
         }
         fun segmentDownloaderTaskError(errorTask: FileSegmentDownloader, e: Throwable?) {

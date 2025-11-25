@@ -17,7 +17,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import okio.Path.Companion.toPath
 
@@ -55,8 +54,7 @@ class FileSender internal constructor(
                     serverClientManager = serverClientManager,
                     downloadReq = downloadReq
                 ) { thisTimeSendBufferSize, _ ->
-                    sendSize.addAndGet(thisTimeSendBufferSize.toLong())
-                    sendSizeFlow.value = sendSize.value
+                    sendSizeFlow.value =  sendSize.addAndGet(thisTimeSendBufferSize.toLong())
                 }
                 senderTask.startTask()
                 segmentSenderTasks.add(senderTask)

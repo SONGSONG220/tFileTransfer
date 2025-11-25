@@ -1,6 +1,5 @@
 package com.tans.tfiletransfer.net.transferproto.filetransfer.downloader
 
-import com.tans.tfiletransfer.net.ITask
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.Address
@@ -20,7 +19,7 @@ class FilesDownloader(
     val senderAddress: Address,
     val maxConnection: Int,
     val minDownloadFileSegmentSize: Long = DEFAULT_MIN_DOWNLOAD_FILE_SEGMENT_SIZE
-) : ITask {
+) : IFilesDownloader {
 
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
@@ -66,7 +65,7 @@ class FilesDownloader(
         NetLog.e(TAG, throwable?.message ?: "Unknown error.", throwable)
     }
 
-    fun downloadingFileTask(): Flow<FileDownloader?> = downloadingFileTask
+    override fun downloadingFileTask(): Flow<FileDownloader?> = downloadingFileTask
 
     companion object Companion {
         private const val TAG = "FilesDownloader"

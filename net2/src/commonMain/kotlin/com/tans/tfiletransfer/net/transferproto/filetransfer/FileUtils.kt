@@ -65,3 +65,21 @@ fun resolveUniqueLocalFilePath(
         index++
     }
 }
+
+fun Long.toHumanReadableSize(): String {
+    val units = arrayOf("B", "KB", "MB", "GB", "TB")
+    var size = if (this < 0L) 0.0 else this.toDouble()
+    var unitIndex = 0
+    while (size >= 1024.0 && unitIndex < units.size - 1) {
+        size /= 1024.0
+        unitIndex++
+    }
+    val scaled = kotlin.math.round(size * 100.0).toLong()
+    val intPart = (scaled / 100).toString()
+    val fracPart = (scaled % 100).toString().padStart(2, '0')
+    return "$intPart.$fracPart ${units[unitIndex]}"
+}
+
+fun Long.toHumanReadableSpeed(): String {
+    return toHumanReadableSize() + "/s"
+}

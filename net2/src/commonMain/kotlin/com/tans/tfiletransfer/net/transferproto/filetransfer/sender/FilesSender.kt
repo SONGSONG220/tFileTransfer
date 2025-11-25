@@ -1,6 +1,5 @@
 package com.tans.tfiletransfer.net.transferproto.filetransfer.sender
 
-import com.tans.tfiletransfer.net.ITask
 import com.tans.tfiletransfer.net.NetLog
 import com.tans.tfiletransfer.net.TaskState
 import com.tans.tfiletransfer.net.socket.Address
@@ -31,7 +30,7 @@ class FilesSender(
     val toSendLocalFiles: List<SenderFile>,
     val localAddress: Address,
     val waitClientSegmentTimeoutInMillis: Long = 3000L
-) : ITask {
+) : IFilesSender {
     override val stateFlow: StateFlow<TaskState> = MutableStateFlow(TaskState.Init)
     override val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     override val stateUpdateMutex: Mutex = Mutex()
@@ -152,7 +151,7 @@ class FilesSender(
         NetLog.e(TAG, throwable?.message ?: "Unknown error.", throwable)
     }
 
-    fun sendingFileTask(): Flow<FileSender?> = sendingFileTask
+    override fun sendingFileTask(): Flow<FileSender?> = sendingFileTask
 
     companion object {
         private const val TAG = "FilesSender"

@@ -15,32 +15,19 @@ kotlin {
 
     jvm()
 
-    // For iOS targets, this is also where you should
-    // configure native binary output. For more information, see:
-    // https://kotlinlang.org/docs/multiplatform-build-native-binaries.html#build-xcframeworks
+    val xcfName = "netKit"
 
-    // A step-by-step guide on how to include this library in an XCode
-    // project can be found here:
-    // https://developer.android.com/kotlin/multiplatform/migrate
-//    val xcfName = "netKit"
-//
-//    iosX64 {
-//        binaries.framework {
-//            baseName = xcfName
-//        }
-//    }
-//
-//    iosArm64 {
-//        binaries.framework {
-//            baseName = xcfName
-//        }
-//    }
-//
-//    iosSimulatorArm64 {
-//        binaries.framework {
-//            baseName = xcfName
-//        }
-//    }
+    iosArm64 {
+        binaries.framework {
+            baseName = xcfName
+        }
+    }
+
+    iosSimulatorArm64 {
+        binaries.framework {
+            baseName = xcfName
+        }
+    }
 
     sourceSets {
         commonMain {
@@ -58,6 +45,12 @@ kotlin {
             dependencies {
                 api(libs.tlrucache)
                 api(libs.tlog)
+            }
+        }
+
+        iosMain {
+            dependencies {
+                
             }
         }
 

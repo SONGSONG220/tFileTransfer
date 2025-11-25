@@ -43,7 +43,8 @@ class FileSegmentSender internal constructor(
         val finishedChannel = Channel<Unit>(1)
         val finishedServer = server<Unit, Unit>(
             requestType = FileTransferDataType.DownloadFileSegmentEndReq.type,
-            responseType = FileTransferDataType.DownloadFileSegmentEndReq.type,
+            // no response
+            responseType = -1,
         ) { _, _, _, isNew ->
             if (isNew) {
                 finishedChannel.trySend(Unit)

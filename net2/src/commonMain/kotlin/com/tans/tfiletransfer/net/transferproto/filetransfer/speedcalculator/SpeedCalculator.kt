@@ -29,7 +29,7 @@ class SpeedCalculator(
                     val currentHandledSize = handledFileSize.first()
                     if (currentFile == lastFile && currentFile != null) {
                         val bytesDiff = currentHandledSize - lastHandledSize
-                        val bytesPerSecond = bytesDiff * 1000L * calculaDurationInMillis
+                        val bytesPerSecond = (bytesDiff * 1000L) / calculaDurationInMillis
                         val speedInHumanreadable = bytesPerSecond.toHumanReadableSpeed()
                         val progressInPercents = currentHandledSize.toDouble() / currentFile.size.coerceAtLeast(1L)
                         speedFlow.emit(

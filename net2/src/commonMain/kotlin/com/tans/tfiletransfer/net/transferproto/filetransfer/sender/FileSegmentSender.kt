@@ -15,10 +15,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import okio.FileHandle
 import com.tans.tfiletransfer.net.socket.buffer.Buffer
+import com.tans.tfiletransfer.net.socket.ext.server.server
 import com.tans.tfiletransfer.net.transferproto.TransferException
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.withTimeout
 import kotlin.time.measureTime
 
-class FileSegmentSender(
+class FileSegmentSender internal constructor(
     val sendingFileHandle: FileHandle,
     val serverClientManager: ITcpServerClientManager,
     val downloadReq: DownloadFileSegmentReq,
@@ -37,13 +40,25 @@ class FileSegmentSender(
             error(TransferException("Wrong download req $downloadReq, segment size must be greater than 0."))
             return
         }
+        val finishedChannel = Channel<Unit>(1)
+        val finishedServer = server<Unit, Unit>(
+            requestType = FileTransferDataType.DownloadFileSegmentEndReq.type,
+            responseType = FileTransferDataType.DownloadFileSegmentEndReq.type,
+        ) { _, _, _, isNew ->
+            if (isNew) {
+                finishedChannel.trySend(Unit)
+            }
+            null
+        }
+        serverClientManager.registerServer(finishedServer)
+
         NetLog.d(TAG, "Start send file segment. Start: $start, End: $end, FilePath: ${downloadReq.file.path}")
         var offset = start
         var currentBufferSize = DEFAULT_SEND_BUFFER_SIZE
         try {
             while (offset < end) {
                 try {
-                    val remain = (end - offset).coerceAtMost(Int.MAX_VALUE.toLong())
+                    val remain = end - offset
                     val bufSize = minOf(remain, currentBufferSize.toLong()).toInt()
                     val buffer: Buffer = serverClientManager.connectionTask.bufferPool.get(bufSize)
                     val readLen = sendingFileHandle.read(offset, buffer.array, 0, bufSize)
@@ -55,11 +70,12 @@ class FileSegmentSender(
                         serverClientManager.requestSimplify<Buffer, Unit>(
                             requestType = FileTransferDataType.SendFileBufferReq.type,
                             request = buffer,
-                            responseType = FileTransferDataType.SendFileBufferRsp.type
+                            responseType = FileTransferDataType.SendFileBufferRsp.type,
+                            retryTimeout = 4000L,
+                            retryTimes = 1
                         )
                     }.inWholeMilliseconds
-                    val nextSize = ((readLen.toLong() * TARGET_SEND_DURATION_MS) / timeCost).toInt()
-                    currentBufferSize = nextSize
+                    currentBufferSize = ((readLen.toLong() * TARGET_SEND_DURATION_MS) / timeCost).toInt()
                         .coerceAtLeast(MIN_SEND_BUFFER_SIZE)
                         .coerceAtMost(MAX_SEND_BUFFER_SIZE)
                     offset += readLen
@@ -73,14 +89,26 @@ class FileSegmentSender(
             error(TransferException("File segment sender canceled.", e))
             return
         }
-        NetLog.d(TAG, "Send file segment success. Start: $start, End: $end, FilePath: ${downloadReq.file.path}")
-        stopTask("Send file segment success.")
+        try {
+            withTimeout(200L) {
+                finishedChannel.receive()
+            }
+            NetLog.d(TAG, "Receive downloader finished.")
+        } catch (e: Throwable) {
+            NetLog.w(TAG, "Receive downloader finished timeout: ${e.message}")
+        }
+
+        val msg = "Send file segment success. Start: $start, End: $end, FilePath: ${downloadReq.file.path}"
+        NetLog.d(TAG, msg)
+        stopTask(msg)
     }
 
     override suspend fun onStopTask(cause: String?) {
+        serverClientManager.connectionTask.stopTask(cause)
     }
 
     override suspend fun onError(throwable: Throwable?) {
+        serverClientManager.connectionTask.onError(throwable)
         NetLog.e(TAG, throwable?.message ?: "Unknown error", throwable)
     }
 
@@ -88,11 +116,12 @@ class FileSegmentSender(
         private const val TAG = "FileSegmentSender"
         // 128 K
         private const val DEFAULT_SEND_BUFFER_SIZE = 128 * 1024
+        // 512 B
         private const val MIN_SEND_BUFFER_SIZE = 512
         // 3 M
         private const val MAX_SEND_BUFFER_SIZE = 3 * 1024 * 1024
 
-        private const val TARGET_SEND_DURATION_MS = 200L
+        private const val TARGET_SEND_DURATION_MS = 1024L
     }
 
 }

@@ -8,7 +8,8 @@ expect class PlatformContext
 
 enum class Platform {
     Android,
-    JVM
+    JVM,
+    iOS
 }
 
 expect fun platform(): Platform

@@ -166,7 +166,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "set -euo pipefail\n\nREPO_ROOT=\"$SRCROOT/../../\"\nGRADLEW=\"$REPO_ROOT/gradlew\"\nif [ ! -x \"$GRADLEW\" ]; then\n  echo \"Gradle wrapper not found: $GRADLEW\"\n  exit 1\nfi\n\ncd \"$REPO_ROOT\"\n\nif [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  if [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    ./gradlew :appShare:linkDebugFrameworkIosSimulatorArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosSimulatorArm64/debugFramework/appShareKit.framework\"\n  else\n    ./gradlew :appShare:linkDebugFrameworkIosArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosArm64/debugFramework/appShareKit.framework\"\n  fi\nelse\n  if [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    ./gradlew :appShare:linkReleaseFrameworkIosSimulatorArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosSimulatorArm64/releaseFramework/appShareKit.framework\"\n  else\n    ./gradlew :appShare:linkReleaseFrameworkIosArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosArm64/releaseFramework/appShareKit.framework\"\n  fi\nfi\n\n/usr/bin/ditto \"$FRAMEWORK_PATH\" \"$SRCROOT/iosApp/appShareKit.framework\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -207,8 +207,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;

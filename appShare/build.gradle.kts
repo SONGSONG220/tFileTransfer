@@ -35,7 +35,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = frameworkName
             isStatic = true
-            export(project(":net"))
+            // export(project(":net"))
         }
     }
 

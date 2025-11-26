@@ -166,7 +166,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n\nREPO_ROOT=\"$SRCROOT/../../\"\nGRADLEW=\"$REPO_ROOT/gradlew\"\nif [ ! -x \"$GRADLEW\" ]; then\n  echo \"Gradle wrapper not found: $GRADLEW\"\n  exit 1\nfi\n\ncd \"$REPO_ROOT\"\n\nif [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  if [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    ./gradlew :appShare:linkDebugFrameworkIosSimulatorArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosSimulatorArm64/debugFramework/appShareKit.framework\"\n  else\n    ./gradlew :appShare:linkDebugFrameworkIosArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosArm64/debugFramework/appShareKit.framework\"\n  fi\nelse\n  if [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n    ./gradlew :appShare:linkReleaseFrameworkIosSimulatorArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosSimulatorArm64/releaseFramework/appShareKit.framework\"\n  else\n    ./gradlew :appShare:linkReleaseFrameworkIosArm64\n    FRAMEWORK_PATH=\"appShare/build/bin/iosArm64/releaseFramework/appShareKit.framework\"\n  fi\nfi\n\n/usr/bin/ditto \"$FRAMEWORK_PATH\" \"$SRCROOT/iosApp/appShareKit.framework\"\n";
+			shellScript = "set -euo pipefail\n\nREPO_ROOT=\"$SRCROOT/../../\"\nGRADLEW=\"$REPO_ROOT/gradlew\"\nif [ ! -x \"$GRADLEW\" ]; then\n  echo \"Gradle wrapper not found: $GRADLEW\"\n  exit 1\nfi\n\ncd \"$REPO_ROOT\"\n./gradlew :appShare:embedAndSignAppleFrameworkForXcode\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

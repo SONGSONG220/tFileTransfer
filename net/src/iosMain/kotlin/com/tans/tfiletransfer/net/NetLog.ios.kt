@@ -1,27 +1,30 @@
 @file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 
 package com.tans.tfiletransfer.net
+
+import platform.Foundation.NSLog
 
 actual object NetLog {
 
     actual fun init(context: PlatformContext) {
-        TODO("Not yet implemented")
+        // no-op
     }
 
     actual fun d(tag: String, msg: String) {
-        TODO("Not yet implemented")
+        NSLog("D/%@: %@", tag, msg)
     }
 
     actual fun i(tag: String, msg: String) {
-        TODO("Not yet implemented")
+        NSLog("I/%@: %@", tag, msg)
     }
 
     actual fun w(tag: String, msg: String) {
-        TODO("Not yet implemented")
+        NSLog("W/%@: %@", tag, msg)
     }
 
     actual fun e(tag: String, msg: String, throwable: Throwable?) {
-        TODO("Not yet implemented")
+        val t = throwable?.message ?: ""
+        NSLog("E/%@: %@ %@", tag, msg, t)
     }
 }
-

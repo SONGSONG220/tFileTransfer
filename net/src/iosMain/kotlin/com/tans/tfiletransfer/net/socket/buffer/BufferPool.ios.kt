@@ -6,15 +6,15 @@ import com.tans.tfiletransfer.net.socket.buffer.Buffer
 actual class BufferPool actual constructor(maxPoolSize: Long) {
 
     actual fun get(requestSize: Int): Buffer {
-        TODO("Not yet implemented")
+        val size = requestSize.coerceAtLeast(0)
+        return Buffer(ByteArray(size), 0)
     }
 
     actual fun put(buffer: Buffer) {
-        TODO("Not yet implemented")
+        // no-op on iOS placeholder
     }
 
     actual fun clearMemory() {
-        TODO("Not yet implemented")
+        // no-op on iOS placeholder
     }
 }
-

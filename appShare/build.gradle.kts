@@ -26,17 +26,16 @@ kotlin {
 
     jvm()
 
-    val xcfName = "commonKit"
+    val frameworkName = "appShareKit"
 
-    iosArm64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = frameworkName
+            isStatic = true
+            export(project(":net"))
         }
     }
 
@@ -79,7 +78,7 @@ kotlin {
         }
         iosMain {
             dependencies {
-
+                // iOS runtime dependencies can be added here
             }
         }
     }

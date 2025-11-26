@@ -17,15 +17,13 @@ kotlin {
 
     val xcfName = "netKit"
 
-    iosArm64 {
-        binaries.framework {
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
             baseName = xcfName
-        }
-    }
-
-    iosSimulatorArm64 {
-        binaries.framework {
-            baseName = xcfName
+            isStatic = true
         }
     }
 
@@ -50,7 +48,7 @@ kotlin {
 
         iosMain {
             dependencies {
-                
+
             }
         }
 

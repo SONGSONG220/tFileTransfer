@@ -13,8 +13,8 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "000000000000004000000001"
-               BuildableName = "iosApp.app"
+               BlueprintIdentifier = "0E88FE3B75C01D9024388E68"
+               BuildableName = "tFileTranfer.app"
                BlueprintName = "iosApp"
                ReferencedContainer = "container:iosApp.xcodeproj">
             </BuildableReference>
@@ -42,12 +42,16 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "000000000000004000000001"
-            BuildableName = "iosApp.app"
+            BlueprintIdentifier = "0E88FE3B75C01D9024388E68"
+            BuildableName = "tFileTranfer.app"
             BlueprintName = "iosApp"
             ReferencedContainer = "container:iosApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <LocationScenarioReference
+         identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
+         referenceType = "1">
+      </LocationScenarioReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

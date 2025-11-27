@@ -1,7 +1,7 @@
 import Foundation
 import Darwin
 
-@objc public class AddressInterop: NSObject {
+@objc public class Address: NSObject {
 
     @objc public static func findLocalIPv4Addresses() -> [String] {
         var result: [String] = []

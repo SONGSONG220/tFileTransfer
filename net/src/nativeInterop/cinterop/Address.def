@@ -1,0 +1,3 @@
+language = Objective-C
+headers = Address.h
+package = com.tans.tfiletransfer.ios

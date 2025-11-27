@@ -25,6 +25,11 @@ kotlin {
             baseName = xcfName
             isStatic = true
         }
+        iosTarget.compilations.getByName("main") {
+            cinterops.create("Address") {
+                includeDirs.allHeaders(rootDir.absolutePath + "/apps/iosApp/interop/address")
+            }
+        }
     }
 
     sourceSets {

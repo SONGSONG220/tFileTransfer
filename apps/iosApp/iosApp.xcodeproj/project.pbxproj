@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		86E1B0C52ED7FCB000260C60 /* Address.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E1B0C22ED7FCB000260C60 /* Address.swift */; };
+		86E1B0C62ED7FCE100260C60 /* Address.h in Sources */ = {isa = PBXBuildFile; fileRef = 86E1B0C12ED7FCB000260C60 /* Address.h */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXBuildRule section */
 		8631CEE52ED703920059ECB2 /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
@@ -22,6 +27,8 @@
 
 /* Begin PBXFileReference section */
 		007D8F4673F9DDA3C387A9A4 /* tFileTranfer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tFileTranfer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		86E1B0C12ED7FCB000260C60 /* Address.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Address.h; sourceTree = "<group>"; };
+		86E1B0C22ED7FCB000260C60 /* Address.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Address.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -61,19 +68,37 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		86E1B0C32ED7FCB000260C60 /* address */ = {
+			isa = PBXGroup;
+			children = (
+				86E1B0C12ED7FCB000260C60 /* Address.h */,
+				86E1B0C22ED7FCB000260C60 /* Address.swift */,
+			);
+			path = address;
+			sourceTree = "<group>";
+		};
+		86E1B0C42ED7FCB000260C60 /* interop */ = {
+			isa = PBXGroup;
+			children = (
+				86E1B0C32ED7FCB000260C60 /* address */,
+			);
+			path = interop;
+			sourceTree = "<group>";
+		};
 		932396BF60A897DD3C735C8E = {
 			isa = PBXGroup;
 			children = (
 				6349C5AAD4AF480ED594B48B /* Configuration */,
 				139D918D7A08D1959722416C /* iosApp */,
 				EFBB80082227D0126B2DB69E /* Products */,
+				86E1B0C42ED7FCB000260C60 /* interop */,
 			);
 			sourceTree = "<group>";
 		};
 		EFBB80082227D0126B2DB69E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				007D8F4673F9DDA3C387A9A4 /* MyApplication.app */,
+				007D8F4673F9DDA3C387A9A4 /* tFileTranfer.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,7 +127,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 007D8F4673F9DDA3C387A9A4 /* MyApplication.app */;
+			productReference = 007D8F4673F9DDA3C387A9A4 /* tFileTranfer.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -176,6 +201,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				86E1B0C62ED7FCE100260C60 /* Address.h in Sources */,
+				86E1B0C52ED7FCB000260C60 /* Address.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

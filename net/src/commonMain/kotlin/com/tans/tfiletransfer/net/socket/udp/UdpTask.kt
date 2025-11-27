@@ -153,6 +153,7 @@ class UdpTask(
         }
     }
 
+    @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
     private fun startWrite(socket: DatagramReadWriteChannel) {
         coroutineScope.launch(start = CoroutineStart.ATOMIC) {
             try {

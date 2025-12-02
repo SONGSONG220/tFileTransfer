@@ -74,6 +74,11 @@ android {
 
 dependencies {
 
+    // tApm
+    implementation(libs.tapm.core)
+    implementation(libs.tapm.autoinit)
+    debugImplementation(libs.tapm.log)
+
     // For preview
     debugImplementation(platform(libs.androidx.compose.bom))
     debugImplementation(libs.androidx.compose.ui.tooling)

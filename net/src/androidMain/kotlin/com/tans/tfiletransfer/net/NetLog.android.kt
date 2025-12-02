@@ -9,25 +9,30 @@ import java.io.File
 
 actual object NetLog {
 
-    private val realLog: AtomicRef<tLog?> = atomic(null)
+    private val inited = atomic(false)
+
+    @Volatile
+    private var realLog: tLog? = null
 
     actual fun init(context: PlatformContext) {
-        realLog.compareAndSet(null, tLog.Companion.Builder(baseDir = File(context.cacheDir, "tfiletransfer-net-log")).build())
+        if (inited.compareAndSet(expect = false, update = true)) {
+            realLog = tLog.Companion.Builder(baseDir = File(context.cacheDir, "tfiletransfer-net-log")).build()
+        }
     }
 
     actual fun d(tag: String, msg: String) {
-        realLog.value?.d(tag, msg)
+        realLog?.d(tag, msg)
     }
 
     actual fun i(tag: String, msg: String) {
-        realLog.value?.i(tag, msg)
+        realLog?.i(tag, msg)
     }
 
     actual fun w(tag: String, msg: String) {
-        realLog.value?.w(tag, msg)
+        realLog?.w(tag, msg)
     }
 
     actual fun e(tag: String, msg: String, throwable: Throwable?) {
-        realLog.value?.w(tag, msg)
+        realLog?.e(tag, msg, throwable)
     }
 }

@@ -6,17 +6,17 @@ plugins {
 
 android {
 
-    namespace = "com.tans.tfiletransporter"
+    namespace = "com.zentro.zentroshare"
     compileSdk = properties["ANDROID_COMPILE_SDK"].toString().toInt()
 
     defaultConfig {
-        applicationId = "com.tans.tfiletransporter"
+        applicationId = "com.zentro.zentroshare"
         minSdk = properties["ANDROID_MIN_SDK"].toString().toInt()
         targetSdk = properties["ANDROID_TARGET_SDK"].toString().toInt()
         versionCode = properties["VERSION_CODE"].toString().toInt()
         versionName = properties["VERSION_NAME"].toString()
 
-        setProperty("archivesBaseName", "tfiletransfer-${properties["VERSION_NAME"].toString()}")
+        setProperty("archivesBaseName", "zentroshare-${properties["VERSION_NAME"].toString()}")
     }
 
     packaging {

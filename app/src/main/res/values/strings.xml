@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">zentroshare</string>
+    <string name="app_name">ZentroShare</string>
 
     <string name="dialog_positive">OK</string>
     <string name="dialog_negative">Cancel</string>
